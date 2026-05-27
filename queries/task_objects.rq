@@ -1,0 +1,18 @@
+# SPARQL Query: Retrieve all task objects with their affordances and roles
+# Optional but recommended (PDF §16.1)
+
+PREFIX cap: <https://hcis.io/ontology/aicapstone/2026/>
+PREFIX g04: <https://hcis.io/ontology/aicapstone/2026/group04/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?obj ?label ?type ?role ?affordance
+WHERE {
+  ?obj a ?type .
+  ?type rdfs:subClassOf* cap:PhysicalObject .
+  OPTIONAL { ?obj cap:hasObjectLabel ?label . }
+  OPTIONAL { ?obj cap:hasTaskRole ?role . }
+  OPTIONAL { ?obj cap:hasAffordance ?affordance . }
+  FILTER(?type != cap:PhysicalObject)
+}
+ORDER BY ?obj

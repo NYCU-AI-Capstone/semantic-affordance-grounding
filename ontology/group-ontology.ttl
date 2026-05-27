@@ -1,0 +1,259 @@
+@prefix cap:     <https://hcis.io/ontology/aicapstone/2026/> .
+@prefix g04:     <https://hcis.io/ontology/aicapstone/2026/group04/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix vann:    <http://purl.org/vocab/vann/> .
+@prefix foaf:    <http://xmlns.com/foaf/0.1/> .
+
+# =============================================================================
+# Ontology Metadata (PDF §8)
+# =============================================================================
+
+<https://hcis.io/ontology/aicapstone/2026/group04>
+    a owl:Ontology ;
+    owl:imports <https://hcis.io/ontology/aicapstone/2026> ;
+    rdfs:label "AI Capstone 2026 Group 04 Ontology"@en ;
+    rdfs:comment
+        "Group 04 ontology for Homework 5: Ontology-based Semantic Grounding. This ontology defines group-specific object instances, affordance individuals, task individuals, and the GraspableObject reasoning pattern for the three baseline tasks: cup stacking, cutlery arrangement, and toy block collection."@en ;
+    dcterms:title "AI Capstone 2026 Group 04 Ontology"@en ;
+    dcterms:description
+        "This ontology extends the shared course vocabulary (cap:) with Group 04 specific individuals and the GraspableObject inference class. It demonstrates a complete semantic grounding loop from perceived objects to inferred graspability."@en ;
+    dcterms:creator g04:group04team ;
+    dcterms:created "2026-05-26"^^xsd:date ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
+    vann:preferredNamespacePrefix "g04" ;
+    vann:preferredNamespaceUri "https://hcis.io/ontology/aicapstone/2026/group04/" .
+
+g04:group04team
+    a foaf:Group ;
+    foaf:name "Group 04"@en .
+
+# =============================================================================
+# GraspableObject Reasoning Pattern (PDF §11 Listing 5)
+# =============================================================================
+# Description Logic: cap:GraspableObject ≡ cap:PhysicalObject ⊓ ∃cap:hasAffordance.cap:GraspingAffordance
+# This class is NOT in the official course-affordance.ttl; each group defines it.
+
+cap:GraspableObject
+    a owl:Class ;
+    rdfs:label "graspable object"@en ;
+    rdfs:comment
+        "A physical object inferred to afford grasping by a robot end effector in the task context. Defined as the intersection of cap:PhysicalObject and the existential restriction that the object has at least one cap:hasAffordance relation to a cap:GraspingAffordance individual."@en ;
+    owl:equivalentClass [
+        a owl:Class ;
+        owl:intersectionOf (
+            cap:PhysicalObject
+            [ a owl:Restriction ;
+              owl:onProperty cap:hasAffordance ;
+              owl:someValuesFrom cap:GraspingAffordance ]
+        )
+    ] .
+
+# =============================================================================
+# Robot Agent and End Effector (PDF §4)
+# =============================================================================
+
+g04:robotAgent01
+    a cap:RobotAgent ;
+    rdfs:label "robot agent 01"@en ;
+    rdfs:comment
+        "The robot agent used by Group 04 in the task environment. It perceives objects, reasons over the ontology, and acts through its end effector."@en .
+
+g04:gripper01
+    a cap:EndEffector ;
+    rdfs:label "parallel gripper 01"@en ;
+    rdfs:comment
+        "The parallel-jaw gripper attached to the robot agent, used for grasping and manipulating physical objects."@en .
+
+# =============================================================================
+# Affordance Individuals (PDF §6 — Affordance layer)
+# =============================================================================
+
+# --- Grasping Affordances (for objects that can be grasped) ---
+
+g04:graspAffordBlueCup01
+    a cap:GraspingAffordance ;
+    rdfs:label "grasping affordance for blue cup 01"@en ;
+    rdfs:comment
+        "A grasping affordance instance associated with the blue cup in the cup-stacking task."@en .
+
+g04:graspAffordPinkCup01
+    a cap:GraspingAffordance ;
+    rdfs:label "grasping affordance for pink cup 01"@en ;
+    rdfs:comment
+        "A grasping affordance instance associated with the pink cup in the cup-stacking task."@en .
+
+g04:graspAffordKnife01
+    a cap:GraspingAffordance ;
+    rdfs:label "grasping affordance for knife 01"@en ;
+    rdfs:comment
+        "A grasping affordance instance associated with the knife in the cutlery-arrangement task."@en .
+
+g04:graspAffordFork01
+    a cap:GraspingAffordance ;
+    rdfs:label "grasping affordance for fork 01"@en ;
+    rdfs:comment
+        "A grasping affordance instance associated with the fork in the cutlery-arrangement task."@en .
+
+g04:graspAffordBlock01
+    a cap:GraspingAffordance ;
+    rdfs:label "grasping affordance for toy block 01"@en ;
+    rdfs:comment
+        "A grasping affordance instance associated with the toy block in the toy-block-collection task."@en .
+
+# --- Stackability Affordances (for cups) ---
+
+g04:stackAffordBlueCup01
+    a cap:StackabilityAffordance ;
+    rdfs:label "stackability affordance for blue cup 01"@en ;
+    rdfs:comment
+        "A stackability affordance instance indicating that the blue cup can participate in stacking."@en .
+
+g04:stackAffordPinkCup01
+    a cap:StackabilityAffordance ;
+    rdfs:label "stackability affordance for pink cup 01"@en ;
+    rdfs:comment
+        "A stackability affordance instance indicating that the pink cup can participate in stacking."@en .
+
+# --- Support Affordance (for plate) ---
+
+g04:supportAffordPlate01
+    a cap:SupportAffordance ;
+    rdfs:label "support affordance for plate 01"@en ;
+    rdfs:comment
+        "A support affordance instance indicating that the plate supports placement of cutlery."@en .
+
+# --- Containment Affordance (for basket) ---
+
+g04:containAffordBasket01
+    a cap:ContainmentAffordance ;
+    rdfs:label "containment affordance for basket 01"@en ;
+    rdfs:comment
+        "A containment affordance instance indicating that the basket can contain toy blocks."@en .
+
+# =============================================================================
+# Environment Instances — Baseline Objects (PDF §10)
+# =============================================================================
+# All three predefined tasks are covered regardless of selected task.
+
+# --- Cup Stacking Task Objects ---
+
+g04:blueCup01
+    a cap:Cup ;
+    rdfs:label "blue cup 01"@en ;
+    rdfs:comment
+        "The blue cup instance defined by Group 04 for the baseline cup-stacking task."@en ;
+    cap:hasColor "blue" ;
+    cap:hasObjectLabel "blue_cup" ;
+    cap:hasTaskRole cap:TargetObject ;
+    cap:hasPoseFrame "world/object_blue_cup" ;
+    cap:hasAffordance g04:graspAffordBlueCup01 ;
+    cap:hasAffordance g04:stackAffordBlueCup01 ;
+    cap:canBeManipulatedBy g04:gripper01 .
+
+g04:pinkCup01
+    a cap:Cup ;
+    rdfs:label "pink cup 01"@en ;
+    rdfs:comment
+        "The pink cup instance defined by Group 04 for the baseline cup-stacking task."@en ;
+    cap:hasColor "pink" ;
+    cap:hasObjectLabel "pink_cup" ;
+    cap:hasTaskRole cap:TargetObject ;
+    cap:hasPoseFrame "world/object_pink_cup" ;
+    cap:hasAffordance g04:graspAffordPinkCup01 ;
+    cap:hasAffordance g04:stackAffordPinkCup01 ;
+    cap:canBeManipulatedBy g04:gripper01 .
+
+# --- Cutlery Arrangement Task Objects ---
+
+g04:knife01
+    a cap:Knife ;
+    rdfs:label "knife 01"@en ;
+    rdfs:comment
+        "The knife instance defined by Group 04 for the baseline cutlery-arrangement task."@en ;
+    cap:hasColor "silver" ;
+    cap:hasObjectLabel "knife" ;
+    cap:hasTaskRole cap:TargetObject ;
+    cap:hasPoseFrame "world/object_knife" ;
+    cap:hasAffordance g04:graspAffordKnife01 ;
+    cap:canBeManipulatedBy g04:gripper01 .
+
+g04:fork01
+    a cap:Fork ;
+    rdfs:label "fork 01"@en ;
+    rdfs:comment
+        "The fork instance defined by Group 04 for the baseline cutlery-arrangement task."@en ;
+    cap:hasColor "silver" ;
+    cap:hasObjectLabel "fork" ;
+    cap:hasTaskRole cap:TargetObject ;
+    cap:hasPoseFrame "world/object_fork" ;
+    cap:hasAffordance g04:graspAffordFork01 ;
+    cap:canBeManipulatedBy g04:gripper01 .
+
+g04:plate01
+    a cap:Plate ;
+    rdfs:label "plate 01"@en ;
+    rdfs:comment
+        "The plate instance defined by Group 04 for the baseline cutlery-arrangement task. Serves as a reference object for placing cutlery; not directly grasped."@en ;
+    cap:hasColor "white" ;
+    cap:hasObjectLabel "plate" ;
+    cap:hasTaskRole cap:ReferenceObject ;
+    cap:hasPoseFrame "world/object_plate" ;
+    cap:hasAffordance g04:supportAffordPlate01 .
+
+# --- Toy Block Collection Task Objects ---
+
+g04:block01
+    a cap:ToyBlock ;
+    rdfs:label "toy block 01"@en ;
+    rdfs:comment
+        "The toy block instance defined by Group 04 for the baseline toy-block-collection task."@en ;
+    cap:hasColor "red" ;
+    cap:hasObjectLabel "toy_block" ;
+    cap:hasTaskRole cap:CollectableObject ;
+    cap:hasPoseFrame "world/object_block" ;
+    cap:hasAffordance g04:graspAffordBlock01 ;
+    cap:canBeManipulatedBy g04:gripper01 .
+
+g04:basket01
+    a cap:Basket ;
+    rdfs:label "basket 01"@en ;
+    rdfs:comment
+        "The basket instance defined by Group 04 for the baseline toy-block-collection task. Serves as the container target for collecting toy blocks; not directly grasped."@en ;
+    cap:hasColor "brown" ;
+    cap:hasObjectLabel "basket" ;
+    cap:hasTaskRole cap:ContainerTarget ;
+    cap:hasPoseFrame "world/object_basket" ;
+    cap:hasAffordance g04:containAffordBasket01 .
+
+# =============================================================================
+# Task Instances (PDF §6 — enriches semantic richness)
+# =============================================================================
+
+g04:cupStackingTask
+    a cap:ManipulationTask ;
+    rdfs:label "cup stacking task"@en ;
+    rdfs:comment
+        "A manipulation task in which the robot stacks cups by grasping and placing them."@en ;
+    cap:hasTargetObject g04:blueCup01 ;
+    cap:hasTargetObject g04:pinkCup01 .
+
+g04:cutleryArrangementTask
+    a cap:ManipulationTask ;
+    rdfs:label "cutlery arrangement task"@en ;
+    rdfs:comment
+        "A manipulation task in which the robot arranges cutlery relative to a plate."@en ;
+    cap:hasTargetObject g04:knife01 ;
+    cap:hasTargetObject g04:fork01 ;
+    cap:hasReferenceObject g04:plate01 .
+
+g04:blockCollectionTask
+    a cap:ManipulationTask ;
+    rdfs:label "toy block collection task"@en ;
+    rdfs:comment
+        "A manipulation task in which the robot collects toy blocks into a basket."@en ;
+    cap:hasTargetObject g04:block01 ;
+    cap:hasReferenceObject g04:basket01 .

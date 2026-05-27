@@ -1,0 +1,15 @@
+SPARQL Query: task_objects.rq
+Results: 9 rows
+--------------------------------------------------------------------------------
+obj                                      | label                                    | type                                     | role                                     | affordance                              
+--------------------------------------------------------------------------------
+https://hcis.io/ontology/aicapstone/2026/group04/basket01 | basket                                   | https://hcis.io/ontology/aicapstone/2026/Basket | https://hcis.io/ontology/aicapstone/2026/ContainerTarget | https://hcis.io/ontology/aicapstone/2026/group04/containAffordBasket01
+https://hcis.io/ontology/aicapstone/2026/group04/block01 | toy_block                                | https://hcis.io/ontology/aicapstone/2026/ToyBlock | https://hcis.io/ontology/aicapstone/2026/CollectableObject | https://hcis.io/ontology/aicapstone/2026/group04/graspAffordBlock01
+https://hcis.io/ontology/aicapstone/2026/group04/blueCup01 | blue_cup                                 | https://hcis.io/ontology/aicapstone/2026/Cup | https://hcis.io/ontology/aicapstone/2026/TargetObject | https://hcis.io/ontology/aicapstone/2026/group04/graspAffordBlueCup01
+https://hcis.io/ontology/aicapstone/2026/group04/blueCup01 | blue_cup                                 | https://hcis.io/ontology/aicapstone/2026/Cup | https://hcis.io/ontology/aicapstone/2026/TargetObject | https://hcis.io/ontology/aicapstone/2026/group04/stackAffordBlueCup01
+https://hcis.io/ontology/aicapstone/2026/group04/fork01 | fork                                     | https://hcis.io/ontology/aicapstone/2026/Fork | https://hcis.io/ontology/aicapstone/2026/TargetObject | https://hcis.io/ontology/aicapstone/2026/group04/graspAffordFork01
+https://hcis.io/ontology/aicapstone/2026/group04/knife01 | knife                                    | https://hcis.io/ontology/aicapstone/2026/Knife | https://hcis.io/ontology/aicapstone/2026/TargetObject | https://hcis.io/ontology/aicapstone/2026/group04/graspAffordKnife01
+https://hcis.io/ontology/aicapstone/2026/group04/pinkCup01 | pink_cup                                 | https://hcis.io/ontology/aicapstone/2026/Cup | https://hcis.io/ontology/aicapstone/2026/TargetObject | https://hcis.io/ontology/aicapstone/2026/group04/graspAffordPinkCup01
+https://hcis.io/ontology/aicapstone/2026/group04/pinkCup01 | pink_cup                                 | https://hcis.io/ontology/aicapstone/2026/Cup | https://hcis.io/ontology/aicapstone/2026/TargetObject | https://hcis.io/ontology/aicapstone/2026/group04/stackAffordPinkCup01
+https://hcis.io/ontology/aicapstone/2026/group04/plate01 | plate                                    | https://hcis.io/ontology/aicapstone/2026/Plate | https://hcis.io/ontology/aicapstone/2026/ReferenceObject | https://hcis.io/ontology/aicapstone/2026/group04/supportAffordPlate01
+--------------------------------------------------------------------------------

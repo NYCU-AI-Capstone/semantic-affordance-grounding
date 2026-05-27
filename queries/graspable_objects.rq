@@ -1,0 +1,13 @@
+# SPARQL Query: Retrieve inferred GraspableObject individuals (PDF §12 Listing 6)
+# This query should be executed over an inferred model, not the raw asserted graph.
+
+PREFIX cap: <https://hcis.io/ontology/aicapstone/2026/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT DISTINCT ?obj ?label ?role
+WHERE {
+  ?obj a cap:GraspableObject .
+  OPTIONAL { ?obj cap:hasObjectLabel ?label . }
+  OPTIONAL { ?obj cap:hasTaskRole ?role . }
+}
+ORDER BY ?obj
