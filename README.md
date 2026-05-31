@@ -17,11 +17,19 @@
 
 ## 2. Selected Tasks
 
-本組涵蓋作業要求的三個基本任務：
+本組涵蓋作業要求的三個 entry-level 任務，並額外實作一個自定義 advanced task：
 
+**Entry-level（baseline，必做）**
 1. **Cup Stacking** — 機器人抓取並堆疊藍色杯與粉紅色杯
 2. **Cutlery Arrangement** — 機器人抓取刀叉並相對盤子擺放
 3. **Toy Block Collection** — 機器人抓取積木並放入籃子
+
+**Advanced Task（自定義，PDF §4/§19）**
+4. **Shell Game（藏球猜杯，kitchen scene）** — 數個**外觀完全相同**的不透明杯子中，
+   一顆小球藏在其中一個杯子下並經過洗牌；機器人必須抓起**藏有球的那個杯子**。
+   關鍵在於「哪一個杯子是抓取目標」無法由外觀判斷，而是由 reasoner **推理**得出
+   （`g04:BallConcealingCup`）。這清楚示範了 PDF §18 的核心區分：
+   **「可抓取（graspable）」≠「任務目標（task target）」**——三個杯子都可抓，但只有藏球的那一個是該抓的。
 
 ## 3. Ontology Design
 
@@ -29,45 +37,76 @@
 
 | Layer | Description | Example |
 |-------|-------------|---------|
-| **Object Type** | 共用的物件類別 | `cap:Cup`, `cap:Knife`, `cap:Fork`, `cap:Plate`, `cap:ToyBlock`, `cap:Basket` |
-| **Task Role** | 物件在任務中的角色 | `cap:TargetObject`, `cap:ReferenceObject`, `cap:ContainerTarget`, `cap:CollectableObject` |
-| **Affordance** | 物件的操作可能性 | `cap:GraspingAffordance`, `cap:SupportAffordance`, `cap:ContainmentAffordance`, `cap:StackabilityAffordance` |
-| **Instance** | 組別專屬的具體物件個體 | `g04:blueCup01`, `g04:knife01`, `g04:block01` |
-| **Inferred Class** | 推理器推導出的類別成員 | `g04:blueCup01 rdf:type cap:GraspableObject` |
+| **Object Type** | 共用的物件類別 | `cap:Cup`, `cap:Knife`, `cap:Fork`, `cap:Plate`, `cap:ToyBlock`, `cap:Basket`, `g04:Ball` |
+| **Task Role** | 物件在任務中的角色 | `cap:TargetObject`, `cap:ReferenceObject`, `cap:ContainerTarget`, `cap:CollectableObject`, `g04:CandidateContainer`, `g04:HiddenItem` |
+| **Affordance** | 物件的操作可能性 | `cap:GraspingAffordance`, `cap:SupportAffordance`, `cap:ContainmentAffordance`, `cap:StackabilityAffordance`, `g04:ConcealmentAffordance` |
+| **Instance** | 組別專屬的具體物件個體 | `g04:blueCup01`, `g04:knife01`, `g04:block01`, `g04:shellCup02`, `g04:ball01` |
+| **Inferred Class** | 推理器推導出的類別成員 | `g04:blueCup01 a cap:GraspableObject`；`g04:shellCup02 a g04:BallConcealingCup` |
 
-### 核心推理模式
+### 核心推理模式（兩個推理目標）
 
-`cap:GraspableObject` 使用 OWL `owl:equivalentClass` 定義（PDF §11）：
+**(1) GraspableObject**（baseline + advanced 共用，PDF §11）
 
 ```
 cap:GraspableObject ≡ cap:PhysicalObject ⊓ ∃cap:hasAffordance.cap:GraspingAffordance
 ```
 
-意即：一個物件若是 `cap:PhysicalObject` 且具有至少一個 `cap:GraspingAffordance` 類型的 affordance，即被推理為 `cap:GraspableObject`。
+物件若是 `cap:PhysicalObject` 且具有至少一個 `cap:GraspingAffordance`，即被推理為 `cap:GraspableObject`。
+
+**(2) BallConcealingCup**（advanced task，shell-game 抓取目標）
+
+```
+g04:BallConcealingCup ≡ cap:Cup ⊓ ∃g04:conceals.g04:Ball
+```
+
+某個杯子若藏著（`g04:conceals`）一顆球，即被推理為 `g04:BallConcealingCup`——也就是機器人該抓的杯子。
+`g04:conceals shellCup02 → ball01` 是感知/追蹤得到的**事實斷言**；「哪一杯是目標」則是**推理結果**。
+
+> **匯入依賴的語法修復**：官方 `ontology/imports/course-affordance.ttl` 中 `cap:hasApproxWidth`
+> 原缺 label/comment、檔尾有孤立 triples，本組已修復以利解析；該檔仍屬匯入資源，非本組原創。
 
 ## 4. Modeled Objects and Affordances
 
+**Baseline 物件**
+
 | Object | Type | Color | Task Role | Affordances | Graspable? |
 |--------|------|-------|-----------|-------------|------------|
-| `g04:blueCup01` | `cap:Cup` | blue | `cap:TargetObject` | GraspingAffordance, StackabilityAffordance | ✅ Yes (inferred) |
-| `g04:pinkCup01` | `cap:Cup` | pink | `cap:TargetObject` | GraspingAffordance, StackabilityAffordance | ✅ Yes (inferred) |
-| `g04:knife01` | `cap:Knife` | silver | `cap:TargetObject` | GraspingAffordance | ✅ Yes (inferred) |
-| `g04:fork01` | `cap:Fork` | silver | `cap:TargetObject` | GraspingAffordance | ✅ Yes (inferred) |
-| `g04:plate01` | `cap:Plate` | white | `cap:ReferenceObject` | SupportAffordance | ❌ No |
-| `g04:block01` | `cap:ToyBlock` | red | `cap:CollectableObject` | GraspingAffordance | ✅ Yes (inferred) |
-| `g04:basket01` | `cap:Basket` | brown | `cap:ContainerTarget` | ContainmentAffordance | ❌ No |
+| `g04:blueCup01` | `cap:Cup` | blue | `cap:TargetObject` | Grasping, Stackability | ✅ Yes (inferred) |
+| `g04:pinkCup01` | `cap:Cup` | pink | `cap:TargetObject` | Grasping, Stackability | ✅ Yes (inferred) |
+| `g04:knife01` | `cap:Knife` | silver | `cap:TargetObject` | Grasping | ✅ Yes (inferred) |
+| `g04:fork01` | `cap:Fork` | silver | `cap:TargetObject` | Grasping | ✅ Yes (inferred) |
+| `g04:plate01` | `cap:Plate` | white | `cap:ReferenceObject` | Support | ❌ No |
+| `g04:block01` | `cap:ToyBlock` | red | `cap:CollectableObject` | Grasping | ✅ Yes (inferred) |
+| `g04:basket01` | `cap:Basket` | brown | `cap:ContainerTarget` | Containment | ❌ No |
 
-**設計決策**：`plate01` 和 `basket01` 不被推理為 GraspableObject，因為它們在任務中分別擔任參考物和容器角色，不具備 `GraspingAffordance`。
+**Advanced task 物件（Shell Game）** — 三個杯子刻意設為**同類別、同顏色、同 label、皆不透明**，僅靠 identity / pose frame 區分。
+
+| Object | Type | Color | Opaque | Task Role | Affordances | Graspable? | BallConcealingCup? |
+|--------|------|-------|--------|-----------|-------------|------------|--------------------|
+| `g04:shellCup01` | `cap:Cup` | pink | true | `g04:CandidateContainer` | Grasping, Concealment | ✅ Yes (inferred) | ❌ No |
+| `g04:shellCup02` | `cap:Cup` | pink | true | `g04:CandidateContainer` | Grasping, Concealment | ✅ Yes (inferred) | ✅ **Yes (inferred)** |
+| `g04:shellCup03` | `cap:Cup` | pink | true | `g04:CandidateContainer` | Grasping, Concealment | ✅ Yes (inferred) | ❌ No |
+| `g04:ball01` | `g04:Ball` | white | — | `g04:HiddenItem` | （無）| ❌ No | — |
+
+**設計決策**：
+- `plate01`、`basket01` 不被推理為 GraspableObject（擔任參考物/容器，無 `GraspingAffordance`）。
+- `ball01` 不給 `GraspingAffordance`：機器只抓杯子、間接取球，故球不可抓。
+- 三個 shell cup 都可抓（都有 `GraspingAffordance`），但只有藏球的 `shellCup02` 被推理為 `BallConcealingCup`（抓取目標）。
+- 顏色與不透明拆成兩個正交屬性：`cap:hasColor "pink"` 記顏色、`g04:isOpaque true` 記不透明，**不**合併成混合字串。不透明是 concealment 成立的感知前提——正因看不穿，目標杯才須靠推理而非觀察。
 
 ## 5. Namespace Policy
 
 | Prefix | Namespace URI | 用途 |
 |--------|--------------|------|
 | `cap:` | `https://hcis.io/ontology/aicapstone/2026/` | 課程共用詞彙（classes, properties, affordances） |
-| `g04:` | `https://hcis.io/ontology/aicapstone/2026/group04/` | Group 04 專屬詞彙（instances, affordance individuals） |
+| `g04:` | `https://hcis.io/ontology/aicapstone/2026/group04/` | Group 04 專屬詞彙（instances, advanced 新類別/屬性/角色） |
 
-- **`cap:`** namespace 下的 term 來自官方 `course-affordance.ttl`，加上 `cap:GraspableObject`（各組需自行定義）
-- **`g04:`** namespace 下的 term 由本組自行定義，包括所有物件 instances、affordance instances、task instances
+- **`cap:`** namespace 下的 term 來自官方 `course-affordance.ttl`，加上 `cap:GraspableObject`（各組需自行定義其等價類公理）。
+- **`g04:`** namespace 下的 term 由本組定義，包括所有 instances，以及 advanced task 新增的
+  class（`g04:Ball`、`g04:BallConcealingCup`）、affordance（`g04:ConcealmentAffordance`）、
+  task role（`g04:CandidateContainer`、`g04:HiddenItem`）、object property（`g04:conceals`、`g04:concealedBy`）、
+  datatype property（`g04:isOpaque`）。
+- 本組**不**在 `cap:` namespace 下放置 group-specific 的物件類別或實例（除遵循 PDF §8 約定的 `cap:GraspableObject` 推理目標外）。
 
 ## 6. Instructions for Running the Query
 
@@ -78,7 +117,7 @@ cap:GraspableObject ≡ cap:PhysicalObject ⊓ ∃cap:hasAffordance.cap:Grasping
 conda create -n hw5-ontology python=3.11 -y
 conda activate hw5-ontology
 
-# 安裝依賴
+# 安裝依賴（rdflib + pyshacl）
 pip install -r requirements.txt
 ```
 
@@ -91,14 +130,27 @@ python src/reasoning.py
 
 這會：
 1. 載入 `ontology/imports/course-affordance.ttl` 和 `ontology/group-ontology.ttl`
-2. 執行三階段推理（subClassOf 閉包 → type 繼承 → GraspableObject 分類）
-3. 執行 SPARQL 查詢（`queries/graspable_objects.rq`）
+2. 執行**四階段推理**（subClassOf 閉包 → type 繼承 → GraspableObject 分類 → BallConcealingCup 分類）
+3. 執行三個 SPARQL 查詢（`graspable_objects.rq`、`task_objects.rq`、`concealing_cup.rq`）
 4. 匯出推理結果至 `ontology/inferred-results.ttl`
-5. 儲存查詢結果至 `results/graspable_objects_output.txt`
+5. 儲存查詢結果至 `results/*_output.txt`
+
+### （選用）SHACL 結構驗證（PDF §15）
+
+```bash
+python src/validate.py
+```
+
+用 `ontology/shapes.ttl` 驗證圖是否滿足 §15 結構約束（每個 PhysicalObject 有 objectLabel、
+每個任務目標有 taskRole + affordance），結果為 **Conforms: True**，報告存
+`results/shacl_validation_report.txt`。這示範了「OWL 推理（infer）」與「SHACL 驗證（validate）」的分工。
+
+> Windows 提示：腳本啟動時會強制 stdout 使用 UTF-8，狀態標示一律純 ASCII（`[INFERRED]`/`[YES]`/`[NO]`），
+> 助教不需設定任何環境變數即可直接執行。
 
 ## 7. Expected Query Output
 
-執行 `graspable_objects.rq` 後預期回傳 5 個 inferred GraspableObject：
+### `graspable_objects.rq` — 8 個 inferred GraspableObject
 
 | obj | label | role |
 |-----|-------|------|
@@ -107,60 +159,88 @@ python src/reasoning.py
 | `g04:fork01` | fork | `cap:TargetObject` |
 | `g04:knife01` | knife | `cap:TargetObject` |
 | `g04:pinkCup01` | pink_cup | `cap:TargetObject` |
+| `g04:shellCup01` | shell_cup | `g04:CandidateContainer` |
+| `g04:shellCup02` | shell_cup | `g04:CandidateContainer` |
+| `g04:shellCup03` | shell_cup | `g04:CandidateContainer` |
 
-`g04:plate01` 和 `g04:basket01` **不會**出現在結果中。
+`g04:plate01`、`g04:basket01`、`g04:ball01` **不會**出現在結果中。
+
+### `concealing_cup.rq` — 1 個 inferred 抓取目標（advanced task）
+
+| cup | cupLabel | ball | ballLabel | poseFrame |
+|-----|----------|------|-----------|-----------|
+| `g04:shellCup02` | shell_cup | `g04:ball01` | ball | world/object_cup02 |
+
+只回傳 `shellCup02`（同時是 GraspableObject 且為 BallConcealingCup）；空杯 `shellCup01`、`shellCup03` 不在結果中。
 
 ## 8. What is Inferred vs Asserted
 
 ### Asserted（直接斷言）
-- 物件類型：`g04:blueCup01 a cap:Cup`
+- 物件類型：`g04:blueCup01 a cap:Cup`、`g04:shellCup02 a cap:Cup`、`g04:ball01 a g04:Ball`
 - Affordance 連結：`g04:blueCup01 cap:hasAffordance g04:graspAffordBlueCup01`
 - Task Role：`g04:blueCup01 cap:hasTaskRole cap:TargetObject`
+- 感知事實：`g04:shellCup02 g04:conceals g04:ball01`（球在哪個杯子下，由感知/追蹤得到）
 - Class 階層：`cap:Cup rdfs:subClassOf cap:PhysicalObject`
 
 ### Inferred（推理得出）
-- **Type 繼承**：`g04:blueCup01 a cap:PhysicalObject`（透過 `cap:Cup rdfs:subClassOf cap:PhysicalObject`）
-- **GraspableObject 分類**：`g04:blueCup01 a cap:GraspableObject`（透過 `owl:equivalentClass` 定義推理）
+- **Type 繼承**：`g04:blueCup01 a cap:PhysicalObject`（透過 subClassOf）
+- **GraspableObject 分類**：`g04:blueCup01 a cap:GraspableObject`（透過 `owl:equivalentClass` 定義）
+- **BallConcealingCup 分類**：`g04:shellCup02 a g04:BallConcealingCup`（透過 `owl:equivalentClass` + `g04:conceals` 事實推理出的抓取目標）
 
-GraspableObject 的推理完全由 OWL 定義驅動，**不是**手動在 ontology 中寫入 `a cap:GraspableObject`。
+兩個 inferred class 都完全由 OWL 定義驅動，**不是**手動寫入。特別是 shell game 的答案（哪一杯）
+不是被斷言的，而是從 `conceals` 事實推理出來——避免 PDF §18 pitfall 1（手動斷言所有結果）。
 
 ## 9. How `inferred-results.ttl` Was Generated
 
 `ontology/inferred-results.ttl` 由 `src/reasoning.py` 自動生成，流程如下：
 
-1. **載入**: RDFLib 解析 course-affordance.ttl 和 group-ontology.ttl 到同一個 RDF graph
-2. **階段 1 推理**: 計算 `rdfs:subClassOf` 的傳遞性閉包
-3. **階段 2 推理**: 根據 subClassOf 繼承推入缺失的 `rdf:type` triples
-4. **階段 3 推理**: 解析 `cap:GraspableObject` 的 `owl:equivalentClass` 定義，對滿足條件的 individual 推入 `rdf:type cap:GraspableObject`
-5. **序列化**: 將完整的推理後 graph（含原始 + 推理新增的 triples）序列化為 Turtle 格式
+1. **載入**：RDFLib 解析 course-affordance.ttl 和 group-ontology.ttl 到同一個 RDF graph
+2. **階段 1**：計算 `rdfs:subClassOf` 的傳遞性閉包
+3. **階段 2**：根據 subClassOf 繼承推入缺失的 `rdf:type` triples（如 `g04:blueCup01 a cap:PhysicalObject`）
+4. **階段 3**：解析 `cap:GraspableObject` 的 `owl:equivalentClass` 定義，對滿足條件的 individual 推入 `rdf:type cap:GraspableObject`
+5. **階段 4**：解析 `g04:BallConcealingCup` 的 `owl:equivalentClass` 定義，對「是 Cup 且 conceals 某 Ball」的杯子推入 `rdf:type g04:BallConcealingCup`
+6. **序列化**：將完整的推理後 graph（原始 + 推理新增的 triples）序列化為 Turtle
 
 由於 RDFLib 不內建完整 OWL 推理器，本腳本實作自訂的推理規則層來完成所需的 class classification（PDF §13.3）。
+推理摘要：11 個 PhysicalObject → 8 個 GraspableObject、1 個 BallConcealingCup（shellCup02）。
 
 ## 10. File Links
 
 ### Ontology Files
 | File | Description | Authored By |
 |------|-------------|-------------|
-| [group-ontology.ttl](ontology/group-ontology.ttl) | Group 04 ontology（含 GraspableObject 定義） | Group 04 |
+| [group-ontology.ttl](ontology/group-ontology.ttl) | Group 04 ontology（含 GraspableObject / BallConcealingCup 定義、baseline + advanced 實例） | Group 04 |
 | [inferred-results.ttl](ontology/inferred-results.ttl) | 推理後的完整 graph（自動生成） | reasoning.py |
-| [course-affordance.ttl](ontology/imports/course-affordance.ttl) | 課程共用 ontology（官方提供） | Course |
+| [shapes.ttl](ontology/shapes.ttl) | SHACL 結構驗證 shapes（PDF §15） | Group 04 |
+| [course-affordance.ttl](ontology/imports/course-affordance.ttl) | 課程共用 ontology（官方提供，已修復語法） | Course |
 | [course-alignment.ttl](ontology/imports/course-alignment.ttl) | SKOS 對齊（官方提供） | Course |
 
 ### Query Files
 | File | Description |
 |------|-------------|
-| [graspable_objects.rq](queries/graspable_objects.rq) | 查詢推理後的 GraspableObject（必要） |
-| [task_objects.rq](queries/task_objects.rq) | 查詢所有任務物件（推薦） |
+| [graspable_objects.rq](queries/graspable_objects.rq) | 查詢推理後的 GraspableObject（必要，PDF §12） |
+| [task_objects.rq](queries/task_objects.rq) | 查詢所有任務物件與 affordance（推薦） |
+| [concealing_cup.rq](queries/concealing_cup.rq) | 查詢 advanced task 的藏球抓取目標杯 |
 
 ### Source Code
 | File | Description |
 |------|-------------|
-| [reasoning.py](src/reasoning.py) | Python RDFLib 推理腳本 |
+| [reasoning.py](src/reasoning.py) | Python RDFLib 四階段推理 + SPARQL 查詢腳本 |
+| [validate.py](src/validate.py) | pyshacl SHACL 結構驗證腳本（選用） |
 
 ### Result Files
 | File | Description |
 |------|-------------|
-| [graspable_objects_output.txt](results/graspable_objects_output.txt) | SPARQL 查詢結果（自動生成） |
+| [graspable_objects_output.txt](results/graspable_objects_output.txt) | GraspableObject 查詢結果（自動生成） |
+| [task_objects_output.txt](results/task_objects_output.txt) | 任務物件查詢結果（自動生成） |
+| [concealing_cup_output.txt](results/concealing_cup_output.txt) | 藏球目標杯查詢結果（自動生成） |
+| [shacl_validation_report.txt](results/shacl_validation_report.txt) | SHACL 驗證報告（Conforms: True） |
+
+### Documentation
+| File | Description |
+|------|-------------|
+| [report.md](report.md) | 設計報告（rationale、axioms、limitations 等） |
+| [CLAUDE.md](CLAUDE.md) | 專案統整與工作指引（Source of Truth） |
 
 ## Repository Structure
 
@@ -168,19 +248,25 @@ GraspableObject 的推理完全由 OWL 定義驅動，**不是**手動在 ontolo
 semantic-affordance-grounding/
 ├── README.md                         ← 本文件
 ├── report.md                         ← 設計報告
-├── requirements.txt                  ← Python 依賴
+├── CLAUDE.md                         ← 專案統整（Source of Truth）
+├── requirements.txt                  ← Python 依賴（rdflib + pyshacl）
 ├── ontology/
 │   ├── group-ontology.ttl            ← 【組別自建】Group 04 ontology
 │   ├── inferred-results.ttl          ← 【自動生成】推理後的 graph
+│   ├── shapes.ttl                    ← 【組別自建】SHACL 驗證 shapes
 │   └── imports/
-│       ├── course-affordance.ttl     ← 【官方提供】課程共用 ontology
+│       ├── course-affordance.ttl     ← 【官方提供】課程共用 ontology（已修復語法）
 │       └── course-alignment.ttl      ← 【官方提供】SKOS 對齊
 ├── queries/
 │   ├── graspable_objects.rq          ← 【必要】GraspableObject 查詢
-│   └── task_objects.rq               ← 【推薦】任務物件查詢
+│   ├── task_objects.rq               ← 【推薦】任務物件查詢
+│   └── concealing_cup.rq             ← 【advanced】藏球目標杯查詢
 ├── results/
 │   ├── graspable_objects_output.txt  ← 【自動生成】查詢結果
-│   └── screenshots/                  ← 選用截圖
+│   ├── task_objects_output.txt       ← 【自動生成】查詢結果
+│   ├── concealing_cup_output.txt     ← 【自動生成】查詢結果
+│   └── shacl_validation_report.txt   ← 【自動生成】SHACL 報告
 └── src/
-    └── reasoning.py                  ← Python 推理腳本
+    ├── reasoning.py                  ← Python 四階段推理腳本
+    └── validate.py                   ← SHACL 驗證腳本（選用）
 ```
