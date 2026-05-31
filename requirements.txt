@@ -1,1 +1,2 @@
 rdflib>=7.0.0
+pyshacl>=0.31.0   # optional: SHACL structural validation (PDF §15)

@@ -1,0 +1,61 @@
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix cap:  <https://hcis.io/ontology/aicapstone/2026/> .
+@prefix g04:  <https://hcis.io/ontology/aicapstone/2026/group04/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# =============================================================================
+# SHACL Shapes for Group 04 — structural validation (PDF §15, OPTIONAL)
+# =============================================================================
+# OWL reasoning INFERS class membership (e.g. cap:GraspableObject); SHACL, by
+# contrast, VALIDATES that the submitted graph satisfies required structural
+# constraints. These shapes encode the constraints suggested in PDF §15. They
+# are run with rdfs inference enabled so that sh:targetClass cap:PhysicalObject
+# matches instances of its subclasses (cap:Cup, cap:Knife, g04:Ball, ...).
+
+<https://hcis.io/ontology/aicapstone/2026/group04/shapes>
+    a owl:Ontology ;
+    rdfs:label "Group 04 SHACL shapes"@en ;
+    dcterms:description
+        "Structural validation shapes for the Group 04 ontology, encoding the constraints suggested in Homework 5 §15."@en .
+
+# --- §15 (1): every cap:PhysicalObject must have at least one object label ---
+
+g04:PhysicalObjectShape
+    a sh:NodeShape ;
+    rdfs:label "physical object shape"@en ;
+    sh:targetClass cap:PhysicalObject ;
+    sh:property [
+        sh:path cap:hasObjectLabel ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "Every cap:PhysicalObject must have at least one cap:hasObjectLabel (xsd:string)."@en ;
+    ] .
+
+# --- §15 (2)+(3): every task target (object of cap:hasTargetObject) must have ---
+# --- at least one task role AND at least one affordance ---
+
+g04:TaskTargetShape
+    a sh:NodeShape ;
+    rdfs:label "task target shape"@en ;
+    sh:targetObjectsOf cap:hasTargetObject ;
+    sh:property [
+        sh:path cap:hasTaskRole ;
+        sh:minCount 1 ;
+        sh:message "Every task target (object of cap:hasTargetObject) must have at least one cap:hasTaskRole."@en ;
+    ] ;
+    sh:property [
+        sh:path cap:hasAffordance ;
+        sh:minCount 1 ;
+        sh:message "Every task target (object of cap:hasTargetObject) must have at least one cap:hasAffordance."@en ;
+    ] .
+
+# Note on §15 (4) — "every advanced task must define at least one new object
+# class and one new affordance or task role" — is an ontology-/schema-level
+# meta-constraint over the TBox, not a constraint over individuals in the data
+# graph, and is therefore not expressed here. It is satisfied by design: the
+# shell-game task introduces g04:Ball + g04:BallConcealingCup (new classes),
+# g04:ConcealmentAffordance (new affordance), and g04:CandidateContainer /
+# g04:HiddenItem (new task roles). See report.md / CLAUDE.md.

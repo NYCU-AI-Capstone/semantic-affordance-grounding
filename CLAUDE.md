@@ -103,9 +103,12 @@ Query Layer:
 ## 8. 如何重現（執行方式）
 
 ```bash
-# 環境：conda env hw5-ontology（已安裝 rdflib，見 requirements.txt）
-conda run -n hw5-ontology python src/reasoning.py
+# 環境：conda env hw5-ontology（已安裝 rdflib + pyshacl，見 requirements.txt）
+conda run -n hw5-ontology python src/reasoning.py   # OWL 推理 + SPARQL 查詢
+conda run -n hw5-ontology python src/validate.py    # SHACL 結構驗證（選用，§15）
 ```
+
+**推理 vs 驗證的分工**：`reasoning.py` 用 OWL 等價類公理「推理」class 成員（GraspableObject、BallConcealingCup）；`validate.py` 用 SHACL shapes（`ontology/shapes.ttl`）「驗證」圖是否滿足 §15 結構約束（每個 PhysicalObject 有 objectLabel、每個任務目標有 taskRole + affordance）。驗證以 rdfs inference 執行，結果 **Conforms: True**，報告存 `results/shacl_validation_report.txt`。
 
 執行後會重新產生 `ontology/inferred-results.ttl`、`results/graspable_objects_output.txt`、
 `results/task_objects_output.txt`。重跑結果與已提交版本一致（reproducible）。
@@ -118,6 +121,6 @@ conda run -n hw5-ontology python src/reasoning.py
 ## 9. 待完成事項
 
 - [x] Advanced Task（Shell Game 藏球猜杯）— 本體、推理、查詢、輸出皆完成並驗證可重現
-- [ ] 補充組員名單（README + report）
-- [ ] README.md / report.md 逐項稽核（PDF §16.2 的 10 項要求；含 advanced task 的設計說明、物件-affordance 表更新、concealing_cup.rq 執行說明與預期輸出）
-- [ ] 可選：SHACL 驗證（PDF §15）
+- [x] 補充組員名單（README + report）
+- [x] SHACL 驗證（PDF §15）— `ontology/shapes.ttl` + `src/validate.py`，報告 `results/shacl_validation_report.txt`（Conforms: True）
+- [ ] README.md / report.md 逐項稽核（PDF §16.2 的 10 項要求；含 advanced task 的設計說明、物件-affordance 表更新、concealing_cup.rq 與 SHACL 執行說明與預期輸出）
