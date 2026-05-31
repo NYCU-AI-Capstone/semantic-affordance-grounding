@@ -3,5 +3,5 @@ Results: 1 rows
 --------------------------------------------------------------------------------
 cup                                      | cupLabel                                 | ball                                     | ballLabel                                | poseFrame                               
 --------------------------------------------------------------------------------
-https://hcis.io/ontology/aicapstone/2026/group04/cupB01 | shell_cup                                | https://hcis.io/ontology/aicapstone/2026/group04/ball01 | ball                                     | world/object_cupB                       
+https://hcis.io/ontology/aicapstone/2026/group04/shellCup02 | shell_cup                                | https://hcis.io/ontology/aicapstone/2026/group04/ball01 | ball                                     | world/object_cup02                      
 --------------------------------------------------------------------------------

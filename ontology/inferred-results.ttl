@@ -55,6 +55,12 @@ g04:cutleryArrangementTask a cap:ManipulationTask,
     cap:hasTargetObject g04:fork01,
         g04:knife01 .
 
+g04:isOpaque a owl:DatatypeProperty ;
+    rdfs:label "is opaque"@en ;
+    rdfs:comment "Records whether a physical object is visually opaque (cannot be seen through). Orthogonal to cap:hasColor (which records colour only). In the shell-game task opacity is the perceptual property that makes concealment possible: because the cups are opaque, the robot cannot see which one hides the ball and must infer the retrieval target by reasoning rather than direct observation."@en ;
+    rdfs:domain cap:PhysicalObject ;
+    rdfs:range xsd:boolean .
+
 g04:robotAgent01 a cap:RobotAgent ;
     rdfs:label "robot agent 01"@en ;
     rdfs:comment "The robot agent used by Group 04 in the task environment. It perceives objects, reasons over the ontology, and acts through its end effector."@en .
@@ -62,19 +68,11 @@ g04:robotAgent01 a cap:RobotAgent ;
 g04:shellGameTask a cap:ManipulationTask,
         cap:Task ;
     rdfs:label "shell game task"@en ;
-    rdfs:comment "A manipulation task in which a ball is hidden under one of several shuffled cups and the robot must grasp the cup that conceals the ball. The retrieval target is the inferred g04:BallConcealingCup."@en ;
-    cap:hasReferenceObject g04:ball01,
-        g04:table01 ;
-    cap:hasTargetObject g04:cupA01,
-        g04:cupB01,
-        g04:cupC01 .
-
-g04:supports a owl:ObjectProperty ;
-    rdfs:label "supports"@en ;
-    rdfs:comment "Inverse of g04:restsOn: relates the table to a physical object resting on it."@en ;
-    rdfs:domain g04:Table ;
-    rdfs:range cap:PhysicalObject ;
-    owl:inverseOf g04:restsOn .
+    rdfs:comment "A manipulation task in which a ball is hidden under one of several shuffled, identical cups and the robot must grasp the cup that conceals the ball. The retrieval target is the inferred g04:BallConcealingCup."@en ;
+    cap:hasReferenceObject g04:ball01 ;
+    cap:hasTargetObject g04:shellCup01,
+        g04:shellCup02,
+        g04:shellCup03 .
 
 cap:hasApproxWidth a owl:DatatypeProperty ;
     rdfs:label "has approximate width"@en ;
@@ -171,6 +169,11 @@ cap:Plate a owl:Class ;
             owl:someValuesFrom cap:SupportAffordance ],
         cap:PhysicalObject .
 
+cap:ReferenceObject a owl:Class ;
+    rdfs:label "reference object"@en ;
+    rdfs:comment "A task role for an object used as a spatial or semantic reference for arranging other objects."@en ;
+    rdfs:subClassOf cap:TaskRole .
+
 cap:RobotAgent a owl:Class ;
     rdfs:label "robot agent"@en ;
     rdfs:comment "A robot or robot-controlled agent that can perceive objects, reason over the ontology, and act in the task environment."@en .
@@ -235,72 +238,28 @@ g04:blueCup01 a cap:Cup,
     cap:hasPoseFrame "world/object_blue_cup" ;
     cap:hasTaskRole cap:TargetObject .
 
-g04:concealAffordCupA01 a cap:Affordance,
+g04:concealAffordShellCup01 a cap:Affordance,
         cap:ContainmentAffordance,
         g04:ConcealmentAffordance ;
-    rdfs:label "concealment affordance for shell cup A01"@en ;
-    rdfs:comment "A concealment affordance instance indicating shell-game cup A can hide a small ball."@en .
+    rdfs:label "concealment affordance for shell cup 01"@en ;
+    rdfs:comment "A concealment affordance instance indicating shell-game cup 01 can hide a small ball."@en .
 
-g04:concealAffordCupB01 a cap:Affordance,
+g04:concealAffordShellCup02 a cap:Affordance,
         cap:ContainmentAffordance,
         g04:ConcealmentAffordance ;
-    rdfs:label "concealment affordance for shell cup B01"@en ;
-    rdfs:comment "A concealment affordance instance indicating shell-game cup B can hide a small ball."@en .
+    rdfs:label "concealment affordance for shell cup 02"@en ;
+    rdfs:comment "A concealment affordance instance indicating shell-game cup 02 can hide a small ball."@en .
 
-g04:concealAffordCupC01 a cap:Affordance,
+g04:concealAffordShellCup03 a cap:Affordance,
         cap:ContainmentAffordance,
         g04:ConcealmentAffordance ;
-    rdfs:label "concealment affordance for shell cup C01"@en ;
-    rdfs:comment "A concealment affordance instance indicating shell-game cup C can hide a small ball."@en .
+    rdfs:label "concealment affordance for shell cup 03"@en ;
+    rdfs:comment "A concealment affordance instance indicating shell-game cup 03 can hide a small ball."@en .
 
 g04:containAffordBasket01 a cap:Affordance,
         cap:ContainmentAffordance ;
     rdfs:label "containment affordance for basket 01"@en ;
     rdfs:comment "A containment affordance instance indicating that the basket can contain toy blocks."@en .
-
-g04:cupA01 a cap:Cup,
-        cap:GraspableObject,
-        cap:PhysicalObject ;
-    rdfs:label "shell cup A01"@en ;
-    rdfs:comment "Shell-game cup A: an opaque cup that may conceal the ball. Empty in the current post-shuffle state."@en ;
-    cap:canBeManipulatedBy g04:gripper01 ;
-    g04:restsOn g04:table01 ;
-    cap:hasAffordance g04:concealAffordCupA01,
-        g04:graspAffordCupA01 ;
-    cap:hasColor "red" ;
-    cap:hasObjectLabel "shell_cup" ;
-    cap:hasPoseFrame "world/object_cupA" ;
-    cap:hasTaskRole g04:CandidateContainer .
-
-g04:cupB01 a cap:Cup,
-        cap:GraspableObject,
-        cap:PhysicalObject,
-        g04:BallConcealingCup ;
-    rdfs:label "shell cup B01"@en ;
-    rdfs:comment "Shell-game cup B: an opaque cup that conceals the ball in the current post-shuffle state. The reasoner infers it as g04:BallConcealingCup (the retrieval target)."@en ;
-    cap:canBeManipulatedBy g04:gripper01 ;
-    g04:conceals g04:ball01 ;
-    g04:restsOn g04:table01 ;
-    cap:hasAffordance g04:concealAffordCupB01,
-        g04:graspAffordCupB01 ;
-    cap:hasColor "red" ;
-    cap:hasObjectLabel "shell_cup" ;
-    cap:hasPoseFrame "world/object_cupB" ;
-    cap:hasTaskRole g04:CandidateContainer .
-
-g04:cupC01 a cap:Cup,
-        cap:GraspableObject,
-        cap:PhysicalObject ;
-    rdfs:label "shell cup C01"@en ;
-    rdfs:comment "Shell-game cup C: an opaque cup that may conceal the ball. Empty in the current post-shuffle state."@en ;
-    cap:canBeManipulatedBy g04:gripper01 ;
-    g04:restsOn g04:table01 ;
-    cap:hasAffordance g04:concealAffordCupC01,
-        g04:graspAffordCupC01 ;
-    cap:hasColor "red" ;
-    cap:hasObjectLabel "shell_cup" ;
-    cap:hasPoseFrame "world/object_cupC" ;
-    cap:hasTaskRole g04:CandidateContainer .
 
 g04:fork01 a cap:Fork,
         cap:GraspableObject,
@@ -324,21 +283,6 @@ g04:graspAffordBlueCup01 a cap:Affordance,
     rdfs:label "grasping affordance for blue cup 01"@en ;
     rdfs:comment "A grasping affordance instance associated with the blue cup in the cup-stacking task."@en .
 
-g04:graspAffordCupA01 a cap:Affordance,
-        cap:GraspingAffordance ;
-    rdfs:label "grasping affordance for shell cup A01"@en ;
-    rdfs:comment "A grasping affordance instance associated with shell-game cup A."@en .
-
-g04:graspAffordCupB01 a cap:Affordance,
-        cap:GraspingAffordance ;
-    rdfs:label "grasping affordance for shell cup B01"@en ;
-    rdfs:comment "A grasping affordance instance associated with shell-game cup B."@en .
-
-g04:graspAffordCupC01 a cap:Affordance,
-        cap:GraspingAffordance ;
-    rdfs:label "grasping affordance for shell cup C01"@en ;
-    rdfs:comment "A grasping affordance instance associated with shell-game cup C."@en .
-
 g04:graspAffordFork01 a cap:Affordance,
         cap:GraspingAffordance ;
     rdfs:label "grasping affordance for fork 01"@en ;
@@ -353,6 +297,21 @@ g04:graspAffordPinkCup01 a cap:Affordance,
         cap:GraspingAffordance ;
     rdfs:label "grasping affordance for pink cup 01"@en ;
     rdfs:comment "A grasping affordance instance associated with the pink cup in the cup-stacking task."@en .
+
+g04:graspAffordShellCup01 a cap:Affordance,
+        cap:GraspingAffordance ;
+    rdfs:label "grasping affordance for shell cup 01"@en ;
+    rdfs:comment "A grasping affordance instance associated with shell-game cup 01."@en .
+
+g04:graspAffordShellCup02 a cap:Affordance,
+        cap:GraspingAffordance ;
+    rdfs:label "grasping affordance for shell cup 02"@en ;
+    rdfs:comment "A grasping affordance instance associated with shell-game cup 02."@en .
+
+g04:graspAffordShellCup03 a cap:Affordance,
+        cap:GraspingAffordance ;
+    rdfs:label "grasping affordance for shell cup 03"@en ;
+    rdfs:comment "A grasping affordance instance associated with shell-game cup 03."@en .
 
 g04:group04team a foaf:Group ;
     foaf:name "Group 04"@en .
@@ -392,11 +351,49 @@ g04:plate01 a cap:PhysicalObject,
     cap:hasPoseFrame "world/object_plate" ;
     cap:hasTaskRole cap:ReferenceObject .
 
-g04:restsOn a owl:ObjectProperty ;
-    rdfs:label "rests on"@en ;
-    rdfs:comment "Relates a physical object to the table surface it is placed on in the task environment."@en ;
-    rdfs:domain cap:PhysicalObject ;
-    rdfs:range g04:Table .
+g04:shellCup01 a cap:Cup,
+        cap:GraspableObject,
+        cap:PhysicalObject ;
+    rdfs:label "shell cup 01"@en ;
+    rdfs:comment "Shell-game cup 01: one of several identical opaque cups that may conceal the ball. Empty in the current post-shuffle state."@en ;
+    cap:canBeManipulatedBy g04:gripper01 ;
+    g04:isOpaque true ;
+    cap:hasAffordance g04:concealAffordShellCup01,
+        g04:graspAffordShellCup01 ;
+    cap:hasColor "pink" ;
+    cap:hasObjectLabel "shell_cup" ;
+    cap:hasPoseFrame "world/object_cup01" ;
+    cap:hasTaskRole g04:CandidateContainer .
+
+g04:shellCup02 a cap:Cup,
+        cap:GraspableObject,
+        cap:PhysicalObject,
+        g04:BallConcealingCup ;
+    rdfs:label "shell cup 02"@en ;
+    rdfs:comment "Shell-game cup 02: identical to the other cups, but conceals the ball in the current post-shuffle state. The reasoner infers it as g04:BallConcealingCup (the retrieval target)."@en ;
+    cap:canBeManipulatedBy g04:gripper01 ;
+    g04:conceals g04:ball01 ;
+    g04:isOpaque true ;
+    cap:hasAffordance g04:concealAffordShellCup02,
+        g04:graspAffordShellCup02 ;
+    cap:hasColor "pink" ;
+    cap:hasObjectLabel "shell_cup" ;
+    cap:hasPoseFrame "world/object_cup02" ;
+    cap:hasTaskRole g04:CandidateContainer .
+
+g04:shellCup03 a cap:Cup,
+        cap:GraspableObject,
+        cap:PhysicalObject ;
+    rdfs:label "shell cup 03"@en ;
+    rdfs:comment "Shell-game cup 03: one of several identical opaque cups that may conceal the ball. Empty in the current post-shuffle state."@en ;
+    cap:canBeManipulatedBy g04:gripper01 ;
+    g04:isOpaque true ;
+    cap:hasAffordance g04:concealAffordShellCup03,
+        g04:graspAffordShellCup03 ;
+    cap:hasColor "pink" ;
+    cap:hasObjectLabel "shell_cup" ;
+    cap:hasPoseFrame "world/object_cup03" ;
+    cap:hasTaskRole g04:CandidateContainer .
 
 g04:stackAffordBlueCup01 a cap:Affordance,
         cap:StackabilityAffordance ;
@@ -413,25 +410,19 @@ g04:supportAffordPlate01 a cap:Affordance,
     rdfs:label "support affordance for plate 01"@en ;
     rdfs:comment "A support affordance instance indicating that the plate supports placement of cutlery."@en .
 
-g04:supportAffordTable01 a cap:Affordance,
-        cap:SupportAffordance ;
-    rdfs:label "support affordance for table 01"@en ;
-    rdfs:comment "A support affordance instance indicating that the table surface can support task objects placed on it."@en .
-
 cap:EndEffector a owl:Class ;
     rdfs:label "end effector"@en ;
     rdfs:comment "A robot component used to physically interact with objects, such as a gripper."@en .
 
-cap:ReferenceObject a owl:Class ;
-    rdfs:label "reference object"@en ;
-    rdfs:comment "A task role for an object used as a spatial or semantic reference for arranging other objects."@en ;
-    rdfs:subClassOf cap:TaskRole .
+cap:SupportAffordance a owl:Class ;
+    rdfs:label "support affordance"@en ;
+    rdfs:comment "An affordance by which an object can support the placement or arrangement of other objects."@en ;
+    rdfs:subClassOf cap:Affordance .
 
 g04:ball01 a cap:PhysicalObject,
         g04:Ball ;
     rdfs:label "ball 01"@en ;
     rdfs:comment "The small ball hidden under one of the shell-game cups in the current post-shuffle state."@en ;
-    g04:restsOn g04:table01 ;
     cap:hasColor "white" ;
     cap:hasObjectLabel "ball" ;
     cap:hasPoseFrame "world/object_ball" ;
@@ -448,11 +439,6 @@ cap:StackabilityAffordance a owl:Class ;
     rdfs:comment "An affordance by which an object can participate in a stacking relation with another object."@en ;
     rdfs:subClassOf cap:Affordance .
 
-cap:SupportAffordance a owl:Class ;
-    rdfs:label "support affordance"@en ;
-    rdfs:comment "An affordance by which an object can support the placement or arrangement of other objects."@en ;
-    rdfs:subClassOf cap:Affordance .
-
 g04:CandidateContainer a owl:Class ;
     rdfs:label "candidate container"@en ;
     rdfs:comment "The role of a cup that may conceal the target ball before reasoning identifies the actual concealing cup. Asserted on every shell-game cup so that no single cup is pre-labelled as the answer."@en ;
@@ -462,11 +448,6 @@ g04:ConcealmentAffordance a owl:Class ;
     rdfs:label "concealment affordance"@en ;
     rdfs:comment "An affordance by which an inverted, opaque cup can hide (conceal) a small object placed under it. A specialization of cap:ContainmentAffordance scoped to the shell-game occlusion semantics."@en ;
     rdfs:subClassOf cap:ContainmentAffordance .
-
-g04:Table a owl:Class ;
-    rdfs:label "table"@en ;
-    rdfs:comment "The table surface on which the task objects rest. A large, fixed support surface; it has a support affordance but no grasping affordance, so it is a task-relevant physical object that is correctly NOT inferred as graspable."@en ;
-    rdfs:subClassOf cap:PhysicalObject .
 
 cap:ManipulationTask a owl:Class ;
     rdfs:label "manipulation task"@en ;
@@ -482,16 +463,6 @@ g04:Ball a owl:Class ;
     rdfs:label "ball"@en ;
     rdfs:comment "A small ball used in the shell-game task. It is the item hidden under a cup. In Group 04's model the ball is not a direct grasp target (no grasping affordance); the robot retrieves it indirectly by grasping the concealing cup."@en ;
     rdfs:subClassOf cap:PhysicalObject .
-
-g04:table01 a cap:PhysicalObject,
-        g04:Table ;
-    rdfs:label "table 01"@en ;
-    rdfs:comment "The table surface that supports the shell-game cups and ball in the task environment. Task-relevant but not graspable (no grasping affordance)."@en ;
-    cap:hasAffordance g04:supportAffordTable01 ;
-    cap:hasColor "gray" ;
-    cap:hasObjectLabel "table" ;
-    cap:hasPoseFrame "world/object_table" ;
-    cap:hasTaskRole cap:ReferenceObject .
 
 cap:ContainmentAffordance a owl:Class ;
     rdfs:label "containment affordance"@en ;

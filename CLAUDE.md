@@ -70,21 +70,22 @@ Query Layer:
 4. **OWL Punning**：`cap:hasTaskRole cap:TargetObject` 將 class 當 individual 使用，遵循 PDF Listing 4 範例。
 5. **graspable 與否的建模**：plate（ReferenceObject）、basket（ContainerTarget）**刻意不給** GraspingAffordance，因此不會被推理為 GraspableObject，避免 PDF §18「task relevance ≠ graspability」的 pitfall。
 
-### Advanced Task（Shell Game）設計決策
-6. **杯子設定**：新增 3 個專用不透明杯 `g04:cupA01/cupB01/cupC01`（與 baseline 藍/粉杯分開），視覺相同（皆 `hasColor "red"`、`hasObjectLabel "shell_cup"`），靠 pose frame 區分。
-7. **球不可抓**：`g04:ball01`（`g04:Ball`）**不給** GraspingAffordance；機器只抓杯子、間接取球。故球不會被推理為 GraspableObject。
-8. **第二個推理目標**：`g04:BallConcealingCup ≡ cap:Cup ⊓ ∃g04:conceals.g04:Ball`。斷言 `cupB01 g04:conceals ball01`（感知事實），reasoner 推理出 `cupB01` 是目標杯——答案是**推理**得來，非斷言。
-9. **不洩漏答案**：3 個杯子都先掛 `g04:CandidateContainer` 角色（候選），沒有任何一杯被預先標成答案；最終目標由推理決定。
-10. **新增詞彙**（皆 `g04:`）：class `g04:Ball`、`g04:BallConcealingCup`、`g04:Table`、affordance `g04:ConcealmentAffordance`、role `g04:CandidateContainer`/`g04:HiddenItem`、property `g04:conceals`/`g04:concealedBy`、`g04:restsOn`/`g04:supports`。遠超 spec §15「至少 1 新 class + 1 新 affordance/role」的門檻。
-11. **桌子物件**：新增 `g04:table01`（`g04:Table`），3 個 shell-game 杯與球皆 `g04:restsOn` 桌子。桌子有 `cap:SupportAffordance` 但**無** GraspingAffordance，因此是「任務相關但不可抓取」的物件範例（不會被推理為 GraspableObject），強化 §18 區分。
+### Advanced Task（Shell Game，kitchen scene）設計決策
+6. **杯子設定**：新增 3 個**完全相同**的不透明杯 `g04:shellCup01/02/03`（與 baseline 藍/粉杯分開）。三杯**同類別、同外觀**（皆 `cap:Cup`、`hasColor "pink"`、`g04:isOpaque true`、`hasObjectLabel "shell_cup"`），機器人**看不出差別**——只靠 identity / pose frame 區分。命名用純編號（非 A/B/C）以強調是「同款杯的不同實例」。場景可擴充到 3~5 杯。
+   - **顏色與透明度拆成兩個正交屬性**：`cap:hasColor "pink"` 只記顏色，不透明則用獨立的 boolean 屬性 `g04:isOpaque true`，**不**塞成 `"粉色不透明"` 這種混合字串（否則兩者皆不可查詢、且違反 `cap:hasColor` 的語意）。不透明是 concealment affordance 成立的**感知前提**——正因杯子不透明、看不穿，目標杯才必須靠推理而非觀察得出。`g04:isOpaque` 目前為純描述性事實，未接入推理鏈。
+7. **桌子不建模**：桌子/檯面屬 kitchen scene 背景，**不**作為任務物件建模（無 `g04:Table`）。
+8. **球不可抓**：`g04:ball01`（`g04:Ball`）**不給** GraspingAffordance；機器只抓杯子、間接取球。故球不會被推理為 GraspableObject。
+9. **第二個推理目標**：`g04:BallConcealingCup ≡ cap:Cup ⊓ ∃g04:conceals.g04:Ball`。斷言 `shellCup02 g04:conceals ball01`（感知事實），reasoner 推理出 `shellCup02` 是目標杯——答案是**推理**得來，非斷言。
+10. **不洩漏答案**：3 個杯子都先掛 `g04:CandidateContainer` 角色（候選），沒有任何一杯被預先標成答案；最終目標由推理決定。
+11. **新增詞彙**（皆 `g04:`）：class `g04:Ball`、`g04:BallConcealingCup`、affordance `g04:ConcealmentAffordance`、role `g04:CandidateContainer`/`g04:HiddenItem`、object property `g04:conceals`/`g04:concealedBy`、datatype property `g04:isOpaque`。遠超 spec §15「至少 1 新 class + 1 新 affordance/role」的門檻。
 
 ## 6. 推理結果（已驗證可重現）
 
-- **8 個 GraspableObject**（推理得出，非手動斷言）：blueCup01、pinkCup01、knife01、fork01、block01（baseline 5 個）+ cupA01、cupB01、cupC01（shell-game 3 個）
-- **非 GraspableObject**：plate01、basket01、ball01（球不可抓）、table01（桌子不可抓）
-- **1 個 BallConcealingCup**（Advanced Task 推理得出）：**cupB01**（藏球的目標杯）；cupA01、cupC01 為空杯，未被推理為目標
+- **8 個 GraspableObject**（推理得出，非手動斷言）：blueCup01、pinkCup01、knife01、fork01、block01（baseline 5 個）+ shellCup01、shellCup02、shellCup03（shell-game 3 個）
+- **非 GraspableObject**：plate01、basket01、ball01（球不可抓）
+- **1 個 BallConcealingCup**（Advanced Task 推理得出）：**shellCup02**（藏球的目標杯）；shellCup01、shellCup03 為空杯，未被推理為目標
 - baseline 推理結果與 PDF §12 預期完全吻合。
-- `concealing_cup.rq` 回傳唯一目標：cupB01（pose `world/object_cupB`）藏 ball01。
+- `concealing_cup.rq` 回傳唯一目標：shellCup02（pose `world/object_cup02`）藏 ball01。
 
 ## 7. 檔案責任
 
