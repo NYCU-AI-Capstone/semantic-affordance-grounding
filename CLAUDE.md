@@ -28,6 +28,12 @@
 2. **餐具擺放（Cutlery arrangement）**：knife、fork、plate
 3. **積木收集（Toy block collection）**：toy block、basket
 
+### Advanced Task：Shell Game（藏球猜杯）
+桌上有數個視覺相同的不透明杯子，一顆小球藏在其中一個杯子下，洗牌後機器手臂須
+**抓起「藏有球的那個杯子」**。Ontology 建模洗牌後的最終狀態；「哪個杯子是抓取目標」
+由 reasoner **推理**得出（`g04:BallConcealingCup`），而非手寫斷言。這示範了 spec §18 的
+核心區分：**「可抓取（graspable）」≠「任務目標（target）」**——三個杯子都可抓，但只有藏球的是該抓的。
+
 ## 3. 核心架構
 
 ```
@@ -38,14 +44,16 @@ Ontology Layer:
        ↓ src/reasoning.py
   inferred-results.ttl → 推理後的完整 graph
 
-Reasoning Pipeline（src/reasoning.py 三階段自訂推理層）:
+Reasoning Pipeline（src/reasoning.py 四階段自訂推理層）:
   1. rdfs:subClassOf 傳遞性閉包
   2. rdf:type 繼承推理
   3. owl:equivalentClass 模式匹配 → GraspableObject 分類
+  4. owl:equivalentClass 模式匹配 → BallConcealingCup 分類（Advanced Task）
 
 Query Layer:
   graspable_objects.rq → 查詢推理後的 GraspableObject（必交，PDF §12）
   task_objects.rq      → 查詢所有任務物件與 affordance（選交）
+  concealing_cup.rq    → 查詢藏球且可抓取的目標杯（Advanced Task）
 ```
 
 ## 4. Namespace 邊界（PDF §8）
@@ -62,11 +70,21 @@ Query Layer:
 4. **OWL Punning**：`cap:hasTaskRole cap:TargetObject` 將 class 當 individual 使用，遵循 PDF Listing 4 範例。
 5. **graspable 與否的建模**：plate（ReferenceObject）、basket（ContainerTarget）**刻意不給** GraspingAffordance，因此不會被推理為 GraspableObject，避免 PDF §18「task relevance ≠ graspability」的 pitfall。
 
+### Advanced Task（Shell Game）設計決策
+6. **杯子設定**：新增 3 個專用不透明杯 `g04:cupA01/cupB01/cupC01`（與 baseline 藍/粉杯分開），視覺相同（皆 `hasColor "red"`、`hasObjectLabel "shell_cup"`），靠 pose frame 區分。
+7. **球不可抓**：`g04:ball01`（`g04:Ball`）**不給** GraspingAffordance；機器只抓杯子、間接取球。故球不會被推理為 GraspableObject。
+8. **第二個推理目標**：`g04:BallConcealingCup ≡ cap:Cup ⊓ ∃g04:conceals.g04:Ball`。斷言 `cupB01 g04:conceals ball01`（感知事實），reasoner 推理出 `cupB01` 是目標杯——答案是**推理**得來，非斷言。
+9. **不洩漏答案**：3 個杯子都先掛 `g04:CandidateContainer` 角色（候選），沒有任何一杯被預先標成答案；最終目標由推理決定。
+10. **新增詞彙**（皆 `g04:`）：class `g04:Ball`、`g04:BallConcealingCup`、`g04:Table`、affordance `g04:ConcealmentAffordance`、role `g04:CandidateContainer`/`g04:HiddenItem`、property `g04:conceals`/`g04:concealedBy`、`g04:restsOn`/`g04:supports`。遠超 spec §15「至少 1 新 class + 1 新 affordance/role」的門檻。
+11. **桌子物件**：新增 `g04:table01`（`g04:Table`），3 個 shell-game 杯與球皆 `g04:restsOn` 桌子。桌子有 `cap:SupportAffordance` 但**無** GraspingAffordance，因此是「任務相關但不可抓取」的物件範例（不會被推理為 GraspableObject），強化 §18 區分。
+
 ## 6. 推理結果（已驗證可重現）
 
-- **5 個 GraspableObject**（推理得出，非手動斷言）：blueCup01、pinkCup01、knife01、fork01、block01
-- **2 個非 GraspableObject**：plate01、basket01
-- 與 PDF §12 預期結果完全吻合。
+- **8 個 GraspableObject**（推理得出，非手動斷言）：blueCup01、pinkCup01、knife01、fork01、block01（baseline 5 個）+ cupA01、cupB01、cupC01（shell-game 3 個）
+- **非 GraspableObject**：plate01、basket01、ball01（球不可抓）、table01（桌子不可抓）
+- **1 個 BallConcealingCup**（Advanced Task 推理得出）：**cupB01**（藏球的目標杯）；cupA01、cupC01 為空杯，未被推理為目標
+- baseline 推理結果與 PDF §12 預期完全吻合。
+- `concealing_cup.rq` 回傳唯一目標：cupB01（pose `world/object_cupB`）藏 ball01。
 
 ## 7. 檔案責任
 
@@ -98,7 +116,7 @@ conda run -n hw5-ontology python src/reasoning.py
 
 ## 9. 待完成事項
 
+- [x] Advanced Task（Shell Game 藏球猜杯）— 本體、推理、查詢、輸出皆完成並驗證可重現
 - [ ] 補充組員名單（README + report）
-- [ ] Advanced Task（待設計／使用者提供方向）
-- [ ] README.md / report.md 逐項稽核（PDF §16.2 的 10 項要求；待 advanced task 完成後一起處理）
+- [ ] README.md / report.md 逐項稽核（PDF §16.2 的 10 項要求；含 advanced task 的設計說明、物件-affordance 表更新、concealing_cup.rq 執行說明與預期輸出）
 - [ ] 可選：SHACL 驗證（PDF §15）

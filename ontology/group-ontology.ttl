@@ -17,10 +17,10 @@
     owl:imports <https://hcis.io/ontology/aicapstone/2026> ;
     rdfs:label "AI Capstone 2026 Group 04 Ontology"@en ;
     rdfs:comment
-        "Group 04 ontology for Homework 5: Ontology-based Semantic Grounding. This ontology defines group-specific object instances, affordance individuals, task individuals, and the GraspableObject reasoning pattern for the three baseline tasks: cup stacking, cutlery arrangement, and toy block collection."@en ;
+        "Group 04 ontology for Homework 5: Ontology-based Semantic Grounding. This ontology defines group-specific object instances, affordance individuals, task individuals, and the GraspableObject reasoning pattern for the three baseline tasks (cup stacking, cutlery arrangement, toy block collection) plus an advanced shell-game (ball-under-cup) task with concealment-based target inference."@en ;
     dcterms:title "AI Capstone 2026 Group 04 Ontology"@en ;
     dcterms:description
-        "This ontology extends the shared course vocabulary (cap:) with Group 04 specific individuals and the GraspableObject inference class. It demonstrates a complete semantic grounding loop from perceived objects to inferred graspability."@en ;
+        "This ontology extends the shared course vocabulary (cap:) with Group 04 specific individuals, the GraspableObject inference class, and an advanced shell-game task in which a ball is concealed under one of several cups; the cup that conceals the ball is inferred (g04:BallConcealingCup) as the robot's retrieval target. It demonstrates a complete semantic grounding loop from perceived objects to inferred graspability and inferred task targets."@en ;
     dcterms:creator g04:group04team ;
     dcterms:created "2026-05-26"^^xsd:date ;
     dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
@@ -257,3 +257,242 @@ g04:blockCollectionTask
         "A manipulation task in which the robot collects toy blocks into a basket."@en ;
     cap:hasTargetObject g04:block01 ;
     cap:hasReferenceObject g04:basket01 .
+
+# =============================================================================
+# ADVANCED TASK — Shell Game / Ball-under-Cup (PDF §4, §19)
+# =============================================================================
+# Task: several visually identical cups sit on a table; a small ball is hidden
+# under one cup; the cups are shuffled; the robot must grasp the cup that hides
+# the ball. The ontology models the *post-shuffle grounded state* the robot
+# perceives. Which cup is the retrieval target is INFERRED (not asserted) via the
+# g04:BallConcealingCup equivalent-class axiom, demonstrating the spec's core
+# distinction that "graspable" (all cups) differs from "task target" (one cup).
+
+# --- New object class: Ball (the hidden item; NOT graspable in this model) ---
+
+g04:Ball
+    a owl:Class ;
+    rdfs:subClassOf cap:PhysicalObject ;
+    rdfs:label "ball"@en ;
+    rdfs:comment
+        "A small ball used in the shell-game task. It is the item hidden under a cup. In Group 04's model the ball is not a direct grasp target (no grasping affordance); the robot retrieves it indirectly by grasping the concealing cup."@en .
+
+# --- New object class: Table (support surface; NOT graspable) ---
+
+g04:Table
+    a owl:Class ;
+    rdfs:subClassOf cap:PhysicalObject ;
+    rdfs:label "table"@en ;
+    rdfs:comment
+        "The table surface on which the task objects rest. A large, fixed support surface; it has a support affordance but no grasping affordance, so it is a task-relevant physical object that is correctly NOT inferred as graspable."@en .
+
+# --- New object property: conceals (perception-grounded fact) ---
+
+g04:conceals
+    a owl:ObjectProperty ;
+    rdfs:domain cap:Cup ;
+    rdfs:range g04:Ball ;
+    rdfs:label "conceals"@en ;
+    rdfs:comment
+        "Relates a cup to a ball that is hidden under (concealed by) that cup in the post-shuffle state. This is a perception/tracking-grounded fact asserted by the robot, from which the retrieval target is inferred."@en .
+
+g04:concealedBy
+    a owl:ObjectProperty ;
+    owl:inverseOf g04:conceals ;
+    rdfs:domain g04:Ball ;
+    rdfs:range cap:Cup ;
+    rdfs:label "concealed by"@en ;
+    rdfs:comment
+        "Inverse of g04:conceals: relates a ball to the cup that hides it."@en .
+
+# --- New object property: restsOn (object placed on the table) ---
+
+g04:restsOn
+    a owl:ObjectProperty ;
+    rdfs:domain cap:PhysicalObject ;
+    rdfs:range g04:Table ;
+    rdfs:label "rests on"@en ;
+    rdfs:comment
+        "Relates a physical object to the table surface it is placed on in the task environment."@en .
+
+g04:supports
+    a owl:ObjectProperty ;
+    owl:inverseOf g04:restsOn ;
+    rdfs:domain g04:Table ;
+    rdfs:range cap:PhysicalObject ;
+    rdfs:label "supports"@en ;
+    rdfs:comment
+        "Inverse of g04:restsOn: relates the table to a physical object resting on it."@en .
+
+# --- New affordance: ConcealmentAffordance ---
+
+g04:ConcealmentAffordance
+    a owl:Class ;
+    rdfs:subClassOf cap:ContainmentAffordance ;
+    rdfs:label "concealment affordance"@en ;
+    rdfs:comment
+        "An affordance by which an inverted, opaque cup can hide (conceal) a small object placed under it. A specialization of cap:ContainmentAffordance scoped to the shell-game occlusion semantics."@en .
+
+# --- New task roles ---
+
+g04:CandidateContainer
+    a owl:Class ;
+    rdfs:subClassOf cap:TaskRole ;
+    rdfs:label "candidate container"@en ;
+    rdfs:comment
+        "The role of a cup that may conceal the target ball before reasoning identifies the actual concealing cup. Asserted on every shell-game cup so that no single cup is pre-labelled as the answer."@en .
+
+g04:HiddenItem
+    a owl:Class ;
+    rdfs:subClassOf cap:TaskRole ;
+    rdfs:label "hidden item"@en ;
+    rdfs:comment
+        "The role of the object that is concealed under a cup and must be located by the robot through the concealing cup."@en .
+
+# --- Inferred target class: BallConcealingCup (PDF §11 reasoning pattern) ---
+# DL: g04:BallConcealingCup ≡ cap:Cup ⊓ ∃ g04:conceals . g04:Ball
+
+g04:BallConcealingCup
+    a owl:Class ;
+    rdfs:label "ball-concealing cup"@en ;
+    rdfs:comment
+        "A cup inferred to conceal the target ball, and therefore the robot's retrieval (grasp) target in the shell-game task. Defined as the intersection of cap:Cup and the existential restriction that the cup conceals at least one g04:Ball. Membership is derived by the reasoner from g04:conceals assertions, not asserted directly."@en ;
+    owl:equivalentClass [
+        a owl:Class ;
+        owl:intersectionOf (
+            cap:Cup
+            [ a owl:Restriction ;
+              owl:onProperty g04:conceals ;
+              owl:someValuesFrom g04:Ball ]
+        )
+    ] .
+
+# --- Grasping affordance individuals for the shell-game cups ---
+
+g04:graspAffordCupA01
+    a cap:GraspingAffordance ;
+    rdfs:label "grasping affordance for shell cup A01"@en ;
+    rdfs:comment
+        "A grasping affordance instance associated with shell-game cup A."@en .
+
+g04:graspAffordCupB01
+    a cap:GraspingAffordance ;
+    rdfs:label "grasping affordance for shell cup B01"@en ;
+    rdfs:comment
+        "A grasping affordance instance associated with shell-game cup B."@en .
+
+g04:graspAffordCupC01
+    a cap:GraspingAffordance ;
+    rdfs:label "grasping affordance for shell cup C01"@en ;
+    rdfs:comment
+        "A grasping affordance instance associated with shell-game cup C."@en .
+
+# --- Concealment affordance individuals for the shell-game cups ---
+
+g04:concealAffordCupA01
+    a g04:ConcealmentAffordance ;
+    rdfs:label "concealment affordance for shell cup A01"@en ;
+    rdfs:comment
+        "A concealment affordance instance indicating shell-game cup A can hide a small ball."@en .
+
+g04:concealAffordCupB01
+    a g04:ConcealmentAffordance ;
+    rdfs:label "concealment affordance for shell cup B01"@en ;
+    rdfs:comment
+        "A concealment affordance instance indicating shell-game cup B can hide a small ball."@en .
+
+g04:concealAffordCupC01
+    a g04:ConcealmentAffordance ;
+    rdfs:label "concealment affordance for shell cup C01"@en ;
+    rdfs:comment
+        "A concealment affordance instance indicating shell-game cup C can hide a small ball."@en .
+
+# --- Shell-game cup instances (visually identical opaque cups) ---
+
+g04:cupA01
+    a cap:Cup ;
+    rdfs:label "shell cup A01"@en ;
+    rdfs:comment
+        "Shell-game cup A: an opaque cup that may conceal the ball. Empty in the current post-shuffle state."@en ;
+    cap:hasColor "red" ;
+    cap:hasObjectLabel "shell_cup" ;
+    cap:hasTaskRole g04:CandidateContainer ;
+    cap:hasPoseFrame "world/object_cupA" ;
+    cap:hasAffordance g04:graspAffordCupA01 ;
+    cap:hasAffordance g04:concealAffordCupA01 ;
+    cap:canBeManipulatedBy g04:gripper01 ;
+    g04:restsOn g04:table01 .
+
+g04:cupB01
+    a cap:Cup ;
+    rdfs:label "shell cup B01"@en ;
+    rdfs:comment
+        "Shell-game cup B: an opaque cup that conceals the ball in the current post-shuffle state. The reasoner infers it as g04:BallConcealingCup (the retrieval target)."@en ;
+    cap:hasColor "red" ;
+    cap:hasObjectLabel "shell_cup" ;
+    cap:hasTaskRole g04:CandidateContainer ;
+    cap:hasPoseFrame "world/object_cupB" ;
+    cap:hasAffordance g04:graspAffordCupB01 ;
+    cap:hasAffordance g04:concealAffordCupB01 ;
+    cap:canBeManipulatedBy g04:gripper01 ;
+    g04:conceals g04:ball01 ;
+    g04:restsOn g04:table01 .
+
+g04:cupC01
+    a cap:Cup ;
+    rdfs:label "shell cup C01"@en ;
+    rdfs:comment
+        "Shell-game cup C: an opaque cup that may conceal the ball. Empty in the current post-shuffle state."@en ;
+    cap:hasColor "red" ;
+    cap:hasObjectLabel "shell_cup" ;
+    cap:hasTaskRole g04:CandidateContainer ;
+    cap:hasPoseFrame "world/object_cupC" ;
+    cap:hasAffordance g04:graspAffordCupC01 ;
+    cap:hasAffordance g04:concealAffordCupC01 ;
+    cap:canBeManipulatedBy g04:gripper01 ;
+    g04:restsOn g04:table01 .
+
+# --- Ball instance (the hidden item) ---
+
+g04:ball01
+    a g04:Ball ;
+    rdfs:label "ball 01"@en ;
+    rdfs:comment
+        "The small ball hidden under one of the shell-game cups in the current post-shuffle state."@en ;
+    cap:hasColor "white" ;
+    cap:hasObjectLabel "ball" ;
+    cap:hasTaskRole g04:HiddenItem ;
+    cap:hasPoseFrame "world/object_ball" ;
+    g04:restsOn g04:table01 .
+
+# --- Table support affordance + table instance ---
+
+g04:supportAffordTable01
+    a cap:SupportAffordance ;
+    rdfs:label "support affordance for table 01"@en ;
+    rdfs:comment
+        "A support affordance instance indicating that the table surface can support task objects placed on it."@en .
+
+g04:table01
+    a g04:Table ;
+    rdfs:label "table 01"@en ;
+    rdfs:comment
+        "The table surface that supports the shell-game cups and ball in the task environment. Task-relevant but not graspable (no grasping affordance)."@en ;
+    cap:hasColor "gray" ;
+    cap:hasObjectLabel "table" ;
+    cap:hasTaskRole cap:ReferenceObject ;
+    cap:hasPoseFrame "world/object_table" ;
+    cap:hasAffordance g04:supportAffordTable01 .
+
+# --- Shell-game task instance ---
+
+g04:shellGameTask
+    a cap:ManipulationTask ;
+    rdfs:label "shell game task"@en ;
+    rdfs:comment
+        "A manipulation task in which a ball is hidden under one of several shuffled cups and the robot must grasp the cup that conceals the ball. The retrieval target is the inferred g04:BallConcealingCup."@en ;
+    cap:hasTargetObject g04:cupA01 ;
+    cap:hasTargetObject g04:cupB01 ;
+    cap:hasTargetObject g04:cupC01 ;
+    cap:hasReferenceObject g04:ball01 ;
+    cap:hasReferenceObject g04:table01 .

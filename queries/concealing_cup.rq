@@ -1,0 +1,19 @@
+# SPARQL Query (Advanced Task): Retrieve the shell-game retrieval target —
+# the cup that is both graspable AND inferred to conceal the ball.
+# Must be executed over the INFERRED model: both g04:BallConcealingCup and
+# cap:GraspableObject memberships are derived by the reasoner, not asserted.
+
+PREFIX cap: <https://hcis.io/ontology/aicapstone/2026/>
+PREFIX g04: <https://hcis.io/ontology/aicapstone/2026/group04/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT DISTINCT ?cup ?cupLabel ?ball ?ballLabel ?poseFrame
+WHERE {
+  ?cup a g04:BallConcealingCup .      # inferred: this cup hides the ball
+  ?cup a cap:GraspableObject .        # inferred: this cup can be grasped
+  ?cup g04:conceals ?ball .
+  OPTIONAL { ?cup cap:hasObjectLabel ?cupLabel . }
+  OPTIONAL { ?cup cap:hasPoseFrame ?poseFrame . }
+  OPTIONAL { ?ball cap:hasObjectLabel ?ballLabel . }
+}
+ORDER BY ?cup

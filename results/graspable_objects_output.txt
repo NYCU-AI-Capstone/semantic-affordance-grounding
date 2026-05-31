@@ -1,10 +1,13 @@
 SPARQL Query: graspable_objects.rq
-Results: 5 rows
+Results: 8 rows
 --------------------------------------------------------------------------------
 obj                                      | label                                    | role                                    
 --------------------------------------------------------------------------------
 https://hcis.io/ontology/aicapstone/2026/group04/block01 | toy_block                                | https://hcis.io/ontology/aicapstone/2026/CollectableObject
 https://hcis.io/ontology/aicapstone/2026/group04/blueCup01 | blue_cup                                 | https://hcis.io/ontology/aicapstone/2026/TargetObject
+https://hcis.io/ontology/aicapstone/2026/group04/cupA01 | shell_cup                                | https://hcis.io/ontology/aicapstone/2026/group04/CandidateContainer
+https://hcis.io/ontology/aicapstone/2026/group04/cupB01 | shell_cup                                | https://hcis.io/ontology/aicapstone/2026/group04/CandidateContainer
+https://hcis.io/ontology/aicapstone/2026/group04/cupC01 | shell_cup                                | https://hcis.io/ontology/aicapstone/2026/group04/CandidateContainer
 https://hcis.io/ontology/aicapstone/2026/group04/fork01 | fork                                     | https://hcis.io/ontology/aicapstone/2026/TargetObject
 https://hcis.io/ontology/aicapstone/2026/group04/knife01 | knife                                    | https://hcis.io/ontology/aicapstone/2026/TargetObject
 https://hcis.io/ontology/aicapstone/2026/group04/pinkCup01 | pink_cup                                 | https://hcis.io/ontology/aicapstone/2026/TargetObject

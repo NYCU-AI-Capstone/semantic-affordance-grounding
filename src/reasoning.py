@@ -63,6 +63,7 @@ GROUP_ONTOLOGY_PATH = PROJECT_ROOT / "ontology" / "group-ontology.ttl"
 INFERRED_OUTPUT_PATH = PROJECT_ROOT / "ontology" / "inferred-results.ttl"
 QUERY_PATH = PROJECT_ROOT / "queries" / "graspable_objects.rq"
 TASK_QUERY_PATH = PROJECT_ROOT / "queries" / "task_objects.rq"
+CONCEAL_QUERY_PATH = PROJECT_ROOT / "queries" / "concealing_cup.rq"
 RESULT_OUTPUT_PATH = PROJECT_ROOT / "results" / "graspable_objects_output.txt"
 
 
@@ -223,6 +224,56 @@ def inferGraspableObjects(graph: Graph) -> int:
     return newTripleCount
 
 
+def inferBallConcealingCups(graph: Graph) -> int:
+    """
+    階段 4 (Advanced Task): owl:equivalentClass 模式匹配 — BallConcealingCup 推理。
+
+    解析 g04:BallConcealingCup 的 owl:equivalentClass 定義，
+    檢查每個 cup 是否滿足：
+      1. 是 cap:Cup
+      2. 有 g04:conceals 連結到 g04:Ball 實例
+
+    滿足則推入 rdf:type g04:BallConcealingCup（即 shell-game 的抓取目標）。
+    回傳新增的 triple 數量。
+    """
+    logger.info("")
+    logger.info("=== 階段 4: BallConcealingCup 推理 (Advanced Task) ===")
+    logger.info("  推理規則: g04:BallConcealingCup ≡ cap:Cup ⊓ ∃g04:conceals.g04:Ball")
+
+    newTripleCount = 0
+
+    # 找出所有是 cap:Cup 的 named individuals（經 type 繼承後 cap:Cup 已存在）
+    cups = set()
+    for individual in graph.subjects(RDF.type, CAP.Cup):
+        if isinstance(individual, URIRef):
+            cups.add(individual)
+
+    logger.info(f"  找到 {len(cups)} 個 cap:Cup individuals")
+
+    for cup in sorted(cups, key=str):
+        cupName = _shortName(cup)
+
+        # 檢查是否有 g04:conceals 指向 g04:Ball 實例
+        concealsBall = False
+        for concealed in graph.objects(cup, G04.conceals):
+            concealedTypes = set(graph.objects(concealed, RDF.type))
+            if G04.Ball in concealedTypes:
+                concealsBall = True
+                logger.debug(f"  [YES] {cupName} conceals Ball: {_shortName(concealed)}")
+                break
+
+        if concealsBall:
+            if (cup, RDF.type, G04.BallConcealingCup) not in graph:
+                graph.add((cup, RDF.type, G04.BallConcealingCup))
+                newTripleCount += 1
+                logger.info(f"  [INFERRED] {cupName} -> g04:BallConcealingCup (retrieval target)")
+        else:
+            logger.debug(f"  [NO] {cupName} 未藏球 -> 不是 BallConcealingCup")
+
+    logger.info(f"  -> 新增 {newTripleCount} 個 BallConcealingCup 推理 triples")
+    return newTripleCount
+
+
 def runSparqlQuery(graph: Graph, queryPath: Path, outputPath: Path = None) -> str:
     """執行 SPARQL 查詢並回傳格式化的結果。"""
     logger.info("")
@@ -326,6 +377,7 @@ def main():
     closureMap = computeSubClassOfClosure(graph)
     typeInheritCount = inferTypeInheritance(graph, closureMap)
     graspableCount = inferGraspableObjects(graph)
+    concealingCupCount = inferBallConcealingCups(graph)
 
     # 推理摘要
     logger.info("")
@@ -333,6 +385,7 @@ def main():
     logger.info(f"  rdfs:subClassOf 閉包中的 class 數量: {len(closureMap)}")
     logger.info(f"  type 繼承新增的 triples: {typeInheritCount}")
     logger.info(f"  GraspableObject 推理新增的 triples: {graspableCount}")
+    logger.info(f"  BallConcealingCup 推理新增的 triples: {concealingCupCount}")
     logger.info(f"  推理後總 triple 數量: {len(graph)}")
 
     # Step 3: 執行 SPARQL 查詢
@@ -342,6 +395,11 @@ def main():
     if TASK_QUERY_PATH.exists():
         taskResultPath = PROJECT_ROOT / "results" / "task_objects_output.txt"
         runSparqlQuery(graph, TASK_QUERY_PATH, taskResultPath)
+
+    # Advanced Task: 執行 concealing_cup.rq（找出藏球的抓取目標杯）
+    if CONCEAL_QUERY_PATH.exists():
+        concealResultPath = PROJECT_ROOT / "results" / "concealing_cup_output.txt"
+        runSparqlQuery(graph, CONCEAL_QUERY_PATH, concealResultPath)
 
     # Step 4: 匯出推理後的 graph
     exportInferredGraph(graph, INFERRED_OUTPUT_PATH)
