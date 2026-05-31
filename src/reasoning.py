@@ -20,12 +20,28 @@ from rdflib import Graph, Namespace, RDF, RDFS, OWL, URIRef
 from rdflib.collection import Collection
 
 # =============================================================================
+# 強制 stdout 使用 UTF-8
+# =============================================================================
+# 日誌訊息含中文字元；在非中文語系（如英文 cp1252）的 Windows 上直接印到
+# console 會觸發 UnicodeEncodeError。此處強制 UTF-8，讓助教不需設定任何環境
+# 變數即可直接執行重現。所有狀態標示一律使用純 ASCII（[OK]/[INFERRED] 等）。
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
+# =============================================================================
 # Debug Logging 設定
 # =============================================================================
+# 同時輸出到 console 與 results/reasoning.log（log 檔以 UTF-8 寫入）。
+_LOG_FILE_PATH = Path(__file__).resolve().parent.parent / "results" / "reasoning.log"
+_LOG_FILE_PATH.parent.mkdir(parents=True, exist_ok=True)
+
 logging.basicConfig(
     level=logging.DEBUG,
     format="[%(levelname)s] %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler(_LOG_FILE_PATH, mode="w", encoding="utf-8"),
+    ]
 )
 logger = logging.getLogger("reasoning")
 
@@ -60,15 +76,15 @@ def loadOntologies() -> Graph:
     logger.info(f"載入 course ontology: {COURSE_ONTOLOGY_PATH}")
     graph.parse(str(COURSE_ONTOLOGY_PATH), format="turtle")
     courseTripleCount = len(graph)
-    logger.info(f"  → course ontology 載入完成，共 {courseTripleCount} 個 triples")
+    logger.info(f"  -> course ontology 載入完成，共 {courseTripleCount} 個 triples")
 
     # 載入 group ontology
     logger.info(f"載入 group ontology: {GROUP_ONTOLOGY_PATH}")
     graph.parse(str(GROUP_ONTOLOGY_PATH), format="turtle")
     groupTripleCount = len(graph) - courseTripleCount
-    logger.info(f"  → group ontology 載入完成，新增 {groupTripleCount} 個 triples")
+    logger.info(f"  -> group ontology 載入完成，新增 {groupTripleCount} 個 triples")
 
-    logger.info(f"  → 總計 {len(graph)} 個 triples")
+    logger.info(f"  -> 總計 {len(graph)} 個 triples")
     return graph
 
 
@@ -87,7 +103,7 @@ def computeSubClassOfClosure(graph: Graph) -> dict[URIRef, set[URIRef]]:
             if subClass not in directSuperMap:
                 directSuperMap[subClass] = set()
             directSuperMap[subClass].add(superClass)
-            logger.debug(f"  直接 subClassOf: {_shortName(subClass)} → {_shortName(superClass)}")
+            logger.debug(f"  直接 subClassOf: {_shortName(subClass)} -> {_shortName(superClass)}")
 
     # 計算傳遞性閉包
     closureMap: dict[URIRef, set[URIRef]] = {}
@@ -114,7 +130,7 @@ def computeSubClassOfClosure(graph: Graph) -> dict[URIRef, set[URIRef]]:
     for classUri in allClasses:
         _getAncestors(classUri)
 
-    logger.info(f"  → 共處理 {len(closureMap)} 個 classes 的 subClassOf 閉包")
+    logger.info(f"  -> 共處理 {len(closureMap)} 個 classes 的 subClassOf 閉包")
     for classUri, ancestors in sorted(closureMap.items(), key=lambda x: str(x[0])):
         ancestorNames = sorted([_shortName(a) for a in ancestors if a != classUri])
         if ancestorNames:
@@ -151,7 +167,7 @@ def inferTypeInheritance(graph: Graph, closureMap: dict[URIRef, set[URIRef]]) ->
         newTripleCount += 1
         logger.debug(f"  TYPE-INHERIT: {_shortName(triple[0])} a {_shortName(triple[2])}")
 
-    logger.info(f"  → 新增 {newTripleCount} 個 type-inheritance triples")
+    logger.info(f"  -> 新增 {newTripleCount} 個 type-inheritance triples")
     return newTripleCount
 
 
@@ -190,20 +206,20 @@ def inferGraspableObjects(graph: Graph) -> int:
             affordanceTypes = set(graph.objects(affordance, RDF.type))
             if CAP.GraspingAffordance in affordanceTypes:
                 hasGraspingAffordance = True
-                logger.debug(f"  ✓ {individualName} 有 GraspingAffordance: {_shortName(affordance)}")
+                logger.debug(f"  [YES] {individualName} 有 GraspingAffordance: {_shortName(affordance)}")
                 break
 
         if hasGraspingAffordance:
             if (individual, RDF.type, CAP.GraspableObject) not in graph:
                 graph.add((individual, RDF.type, CAP.GraspableObject))
                 newTripleCount += 1
-                logger.info(f"  ★ INFERRED: {individualName} → cap:GraspableObject")
+                logger.info(f"  [INFERRED] {individualName} -> cap:GraspableObject")
             else:
                 logger.debug(f"  (已存在) {individualName} 已是 GraspableObject")
         else:
-            logger.debug(f"  ✗ {individualName} 沒有 GraspingAffordance → 不是 GraspableObject")
+            logger.debug(f"  [NO] {individualName} 沒有 GraspingAffordance -> 不是 GraspableObject")
 
-    logger.info(f"  → 新增 {newTripleCount} 個 GraspableObject 推理 triples")
+    logger.info(f"  -> 新增 {newTripleCount} 個 GraspableObject 推理 triples")
     return newTripleCount
 
 
@@ -251,7 +267,7 @@ def runSparqlQuery(graph: Graph, queryPath: Path, outputPath: Path = None) -> st
     if outputPath:
         outputPath.parent.mkdir(parents=True, exist_ok=True)
         outputPath.write_text(outputText, encoding="utf-8")
-        logger.info(f"  → 結果已儲存至: {outputPath}")
+        logger.info(f"  -> 結果已儲存至: {outputPath}")
 
     return outputText
 
@@ -271,7 +287,7 @@ def exportInferredGraph(graph: Graph, outputPath: Path):
     outputPath.parent.mkdir(parents=True, exist_ok=True)
     graph.serialize(destination=str(outputPath), format="turtle")
 
-    logger.info(f"  → 推理後的 graph（{len(graph)} triples）已匯出至: {outputPath}")
+    logger.info(f"  -> 推理後的 graph（{len(graph)} triples）已匯出至: {outputPath}")
 
 
 def _shortName(uri: URIRef) -> str:

@@ -22,6 +22,9 @@ ENV/
 .DS_Store
 Thumbs.db
 
+# Reasoning run log (regenerated each run; contains machine-specific paths)
+results/reasoning.log
+
 # Extracted spec (temporary)
 hw5_spec.txt
 
