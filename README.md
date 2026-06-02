@@ -138,12 +138,13 @@ python src/reasoning.py
 ### （選用）SHACL 結構驗證（PDF §15）
 
 ```bash
-python src/validate.py
+python shacl/validate.py
 ```
 
-用 `ontology/shapes.ttl` 驗證圖是否滿足 §15 結構約束（每個 PhysicalObject 有 objectLabel、
+用 `shacl/shapes.ttl` 驗證圖是否滿足 §15 結構約束（每個 PhysicalObject 有 objectLabel、
 每個任務目標有 taskRole + affordance），結果為 **Conforms: True**，報告存
-`results/shacl_validation_report.txt`。這示範了「OWL 推理（infer）」與「SHACL 驗證（validate）」的分工。
+`shacl/shacl_validation_report.txt`。這示範了「OWL 推理（infer）」與「SHACL 驗證（validate）」的分工。
+所有 SHACL 相關檔案集中於選用的 `shacl/` 資料夾，核心倉庫結構維持對齊 PDF §16.1。
 
 > Windows 提示：腳本啟動時會強制 stdout 使用 UTF-8，狀態標示一律純 ASCII（`[INFERRED]`/`[YES]`/`[NO]`），
 > 助教不需設定任何環境變數即可直接執行。
@@ -211,7 +212,6 @@ python src/validate.py
 |------|-------------|-------------|
 | [group-ontology.ttl](ontology/group-ontology.ttl) | Group 04 ontology（含 GraspableObject / BallConcealingCup 定義、baseline + advanced 實例） | Group 04 |
 | [inferred-results.ttl](ontology/inferred-results.ttl) | 推理後的完整 graph（自動生成） | reasoning.py |
-| [shapes.ttl](ontology/shapes.ttl) | SHACL 結構驗證 shapes（PDF §15） | Group 04 |
 | [course-affordance.ttl](ontology/imports/course-affordance.ttl) | 課程共用 ontology（官方提供，已修復語法） | Course |
 | [course-alignment.ttl](ontology/imports/course-alignment.ttl) | SKOS 對齊（官方提供） | Course |
 
@@ -226,7 +226,6 @@ python src/validate.py
 | File | Description |
 |------|-------------|
 | [reasoning.py](src/reasoning.py) | Python RDFLib 四階段推理 + SPARQL 查詢腳本 |
-| [validate.py](src/validate.py) | pyshacl SHACL 結構驗證腳本（選用） |
 
 ### Result Files
 | File | Description |
@@ -234,7 +233,13 @@ python src/validate.py
 | [graspable_objects_output.txt](results/graspable_objects_output.txt) | GraspableObject 查詢結果（自動生成） |
 | [task_objects_output.txt](results/task_objects_output.txt) | 任務物件查詢結果（自動生成） |
 | [concealing_cup_output.txt](results/concealing_cup_output.txt) | 藏球目標杯查詢結果（自動生成） |
-| [shacl_validation_report.txt](results/shacl_validation_report.txt) | SHACL 驗證報告（Conforms: True） |
+
+### SHACL Validation（選用，`shacl/` 資料夾）
+| File | Description |
+|------|-------------|
+| [shapes.ttl](shacl/shapes.ttl) | SHACL 結構驗證 shapes（PDF §15） |
+| [validate.py](shacl/validate.py) | pyshacl SHACL 結構驗證腳本 |
+| [shacl_validation_report.txt](shacl/shacl_validation_report.txt) | SHACL 驗證報告（Conforms: True，自動生成） |
 
 ### Documentation
 | File | Description |
@@ -253,7 +258,6 @@ semantic-affordance-grounding/
 ├── ontology/
 │   ├── group-ontology.ttl            ← 【組別自建】Group 04 ontology
 │   ├── inferred-results.ttl          ← 【自動生成】推理後的 graph
-│   ├── shapes.ttl                    ← 【組別自建】SHACL 驗證 shapes
 │   └── imports/
 │       ├── course-affordance.ttl     ← 【官方提供】課程共用 ontology（已修復語法）
 │       └── course-alignment.ttl      ← 【官方提供】SKOS 對齊
@@ -264,9 +268,11 @@ semantic-affordance-grounding/
 ├── results/
 │   ├── graspable_objects_output.txt  ← 【自動生成】查詢結果
 │   ├── task_objects_output.txt       ← 【自動生成】查詢結果
-│   ├── concealing_cup_output.txt     ← 【自動生成】查詢結果
-│   └── shacl_validation_report.txt   ← 【自動生成】SHACL 報告
-└── src/
-    ├── reasoning.py                  ← Python 四階段推理腳本
-    └── validate.py                   ← SHACL 驗證腳本（選用）
+│   └── concealing_cup_output.txt     ← 【自動生成】查詢結果
+├── src/
+│   └── reasoning.py                  ← Python 四階段推理腳本
+└── shacl/                            ← 【選用】SHACL 結構驗證（PDF §15）
+    ├── shapes.ttl                    ← SHACL shapes
+    ├── validate.py                   ← pyshacl 驗證腳本
+    └── shacl_validation_report.txt   ← 【自動生成】驗證報告
 ```

@@ -26,9 +26,9 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 # =============================================================================
-# Logging 設定（同時輸出 console 與 results/validate.log）
+# Logging 設定（同時輸出 console 與 shacl/validate.log）
 # =============================================================================
-_LOG_FILE_PATH = Path(__file__).resolve().parent.parent / "results" / "validate.log"
+_LOG_FILE_PATH = Path(__file__).resolve().parent / "validate.log"
 _LOG_FILE_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 logging.basicConfig(
@@ -44,13 +44,13 @@ logger = logging.getLogger("validate")
 # =============================================================================
 # 路徑設定
 # =============================================================================
-SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = SCRIPT_DIR.parent
+SCRIPT_DIR = Path(__file__).resolve().parent           # shacl/
+PROJECT_ROOT = SCRIPT_DIR.parent                       # repository root
 
 COURSE_ONTOLOGY_PATH = PROJECT_ROOT / "ontology" / "imports" / "course-affordance.ttl"
 GROUP_ONTOLOGY_PATH = PROJECT_ROOT / "ontology" / "group-ontology.ttl"
-SHAPES_PATH = PROJECT_ROOT / "ontology" / "shapes.ttl"
-REPORT_OUTPUT_PATH = PROJECT_ROOT / "results" / "shacl_validation_report.txt"
+SHAPES_PATH = SCRIPT_DIR / "shapes.ttl"
+REPORT_OUTPUT_PATH = SCRIPT_DIR / "shacl_validation_report.txt"
 
 
 def loadDataGraph() -> Graph:
@@ -101,7 +101,7 @@ def main():
     REPORT_OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     header = (
         f"SHACL Validation Report — Group 04 (PDF §15)\n"
-        f"Shapes: ontology/shapes.ttl\n"
+        f"Shapes: shacl/shapes.ttl\n"
         f"Data:   ontology/imports/course-affordance.ttl + ontology/group-ontology.ttl\n"
         f"Inference: rdfs\n"
         f"Conforms: {conforms}\n"

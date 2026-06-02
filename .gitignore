@@ -24,7 +24,7 @@ Thumbs.db
 
 # Run logs (regenerated each run; contain machine-specific paths)
 results/reasoning.log
-results/validate.log
+shacl/validate.log
 
 # Extracted spec (temporary)
 hw5_spec.txt

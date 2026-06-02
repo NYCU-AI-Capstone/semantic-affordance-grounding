@@ -1,5 +1,5 @@
 SHACL Validation Report — Group 04 (PDF §15)
-Shapes: ontology/shapes.ttl
+Shapes: shacl/shapes.ttl
 Data:   ontology/imports/course-affordance.ttl + ontology/group-ontology.ttl
 Inference: rdfs
 Conforms: True

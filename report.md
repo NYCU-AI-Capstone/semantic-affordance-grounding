@@ -25,14 +25,14 @@
 | `ontology/imports/course-affordance.ttl` | 官方課程共用 ontology（匯入用，已修復原始語法問題） |
 | `ontology/imports/course-alignment.ttl` | 官方 SKOS 概念對齊（參考用） |
 | `ontology/inferred-results.ttl` | 推理腳本自動生成的推理後 graph |
-| `ontology/shapes.ttl` | SHACL 結構驗證 shapes（PDF §15，選用） |
+| `shacl/shapes.ttl` | SHACL 結構驗證 shapes（PDF §15，選用） |
 | `queries/graspable_objects.rq` | 查詢推理後 GraspableObject 的 SPARQL（必要） |
 | `queries/task_objects.rq` | 查詢所有任務物件的 SPARQL（推薦） |
 | `queries/concealing_cup.rq` | 查詢 advanced task 藏球目標杯的 SPARQL |
 | `src/reasoning.py` | Python RDFLib 四階段推理 + 查詢腳本 |
-| `src/validate.py` | pyshacl SHACL 驗證腳本（選用） |
+| `shacl/validate.py` | pyshacl SHACL 驗證腳本（選用） |
 | `results/*_output.txt` | 三個 SPARQL 查詢結果文字檔 |
-| `results/shacl_validation_report.txt` | SHACL 驗證報告（Conforms: True） |
+| `shacl/shacl_validation_report.txt` | SHACL 驗證報告（Conforms: True） |
 
 物件規模：11 個 PhysicalObject 實例（7 baseline + 3 shell-game 杯 + 1 球）、
 15 個 affordance individuals（8 grasping、2 stackability、1 support、1 containment、3 concealment）、
@@ -243,7 +243,7 @@ DL：`BallConcealingCup ≡ Cup ⊓ ∃conceals.Ball`。配合事實 `shellCup02
 
 ### 7.3 SHACL 驗證結果
 
-`src/validate.py` 對 `ontology/shapes.ttl` 執行驗證，結果 **Conforms: True**（報告見 `results/shacl_validation_report.txt`）。
+`shacl/validate.py` 對 `shacl/shapes.ttl` 執行驗證，結果 **Conforms: True**（報告見 `shacl/shacl_validation_report.txt`）。SHACL 相關檔案集中於選用的 `shacl/` 資料夾，使核心倉庫結構維持對齊 PDF §16.1。
 驗證的結構約束：每個 `cap:PhysicalObject` 須有 `cap:hasObjectLabel`；每個任務目標須有 `cap:hasTaskRole` 與 `cap:hasAffordance`。
 
 ---
