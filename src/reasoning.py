@@ -31,8 +31,8 @@ if hasattr(sys.stdout, "reconfigure"):
 # =============================================================================
 # Debug Logging 設定
 # =============================================================================
-# 同時輸出到 console 與 results/reasoning.log（log 檔以 UTF-8 寫入）。
-_LOG_FILE_PATH = Path(__file__).resolve().parent.parent / "results" / "reasoning.log"
+# 同時輸出到 console 與 log/reasoning.log（log 檔以 UTF-8 寫入）。
+_LOG_FILE_PATH = Path(__file__).resolve().parent.parent / "log" / "reasoning.log"
 _LOG_FILE_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 logging.basicConfig(
