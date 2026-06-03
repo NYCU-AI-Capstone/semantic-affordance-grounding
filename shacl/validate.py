@@ -7,9 +7,9 @@ Group 04 | PDF §15
   - reasoning.py：用 OWL 等價類公理「推理」class 成員（如 GraspableObject）。
   - validate.py ：用 SHACL shapes「驗證」圖是否滿足必要結構約束（PDF §15）。
 
-資料圖 = course-affordance.ttl + group-ontology.ttl（asserted graph）。
-驗證時開啟 rdfs inference，使 sh:targetClass cap:PhysicalObject 能匹配其子類
-（cap:Cup、cap:Knife、g04:Ball 等）的個體。
+資料圖 = course-affordance.ttl + group-ontology.ttl，再套用 reasoning.py 中與 affordance
+相關的輕量 materialization，使 class-level existential restrictions 產生的匿名
+cap:hasAffordance blank nodes 也能被 SHACL 驗證看見。
 """
 
 import sys
@@ -46,6 +46,13 @@ logger = logging.getLogger("validate")
 # =============================================================================
 SCRIPT_DIR = Path(__file__).resolve().parent           # shacl/
 PROJECT_ROOT = SCRIPT_DIR.parent                       # repository root
+sys.path.insert(0, str(PROJECT_ROOT))
+
+from src.reasoning import (  # noqa: E402
+    computeSubClassOfClosure,
+    inferTypeInheritance,
+    materializeClassLevelAffordances,
+)
 
 COURSE_ONTOLOGY_PATH = PROJECT_ROOT / "ontology" / "imports" / "course-affordance.ttl"
 GROUP_ONTOLOGY_PATH = PROJECT_ROOT / "ontology" / "group-ontology.ttl"
@@ -54,14 +61,20 @@ REPORT_OUTPUT_PATH = SCRIPT_DIR / "shacl_validation_report.txt"
 
 
 def loadDataGraph() -> Graph:
-    """載入 course ontology 與 group ontology 為單一資料圖。"""
+    """載入 course ontology 與 group ontology，並 materialize class-level affordances。"""
     graph = Graph()
     logger.info("=== 載入資料圖 ===")
     logger.info(f"載入 course ontology: {COURSE_ONTOLOGY_PATH}")
     graph.parse(str(COURSE_ONTOLOGY_PATH), format="turtle")
     logger.info(f"載入 group ontology: {GROUP_ONTOLOGY_PATH}")
     graph.parse(str(GROUP_ONTOLOGY_PATH), format="turtle")
-    logger.info(f"  -> 資料圖共 {len(graph)} 個 triples")
+    logger.info(f"  -> asserted 資料圖共 {len(graph)} 個 triples")
+
+    logger.info("套用 reasoning.py 的 class-level affordance materialization")
+    closureMap = computeSubClassOfClosure(graph)
+    inferTypeInheritance(graph, closureMap)
+    materializeClassLevelAffordances(graph, closureMap)
+    logger.info(f"  -> materialized 資料圖共 {len(graph)} 個 triples")
     return graph
 
 
@@ -80,6 +93,7 @@ def main():
     logger.info("")
     logger.info(f"=== 執行 SHACL 驗證 (shapes: {SHAPES_PATH.name}) ===")
     logger.info("  rdfs inference: 開啟（使 targetClass 能匹配子類個體）")
+    logger.info("  affordance materialization: 開啟（沿用 reasoning.py class-level restrictions）")
 
     conforms, resultsGraph, resultsText = validate(
         dataGraph,
@@ -102,8 +116,8 @@ def main():
     header = (
         f"SHACL Validation Report — Group 04 (PDF §15)\n"
         f"Shapes: shacl/shapes.ttl\n"
-        f"Data:   ontology/imports/course-affordance.ttl + ontology/group-ontology.ttl\n"
-        f"Inference: rdfs\n"
+        f"Data:   ontology/imports/course-affordance.ttl + ontology/group-ontology.ttl + affordance materialization\n"
+        f"Inference: rdfs + reasoning.py class-level affordance materialization\n"
         f"Conforms: {conforms}\n"
         + "-" * 80 + "\n"
     )

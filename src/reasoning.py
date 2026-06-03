@@ -3,20 +3,22 @@ reasoning.py — HW5 Ontology-based Semantic Grounding 推理腳本
 Group 04 | Option C: Python RDFLib + 自訂推理層
 
 本腳本使用 RDFLib 載入 course ontology 和 group ontology，
-執行三階段自訂推理，最終匯出推理結果與 SPARQL 查詢結果。
+執行自訂推理，最終匯出推理結果與 SPARQL 查詢結果。
 
 推理機制（PDF §13.3 要求明確記錄）：
   - RDFLib 不支援完整 OWL 推理，因此本腳本實作自訂推理層。
   - 階段 1: rdfs:subClassOf 傳遞性閉包
   - 階段 2: rdf:type 繼承推理
+  - 階段 2b: class-level existential restrictions materialization
   - 階段 3: owl:equivalentClass 模式匹配（GraspableObject 分類）
 """
 
 import os
 import sys
 import logging
+import hashlib
 from pathlib import Path
-from rdflib import Graph, Namespace, RDF, RDFS, OWL, URIRef
+from rdflib import Graph, Namespace, RDF, RDFS, OWL, URIRef, BNode
 from rdflib.collection import Collection
 
 # =============================================================================
@@ -172,6 +174,111 @@ def inferTypeInheritance(graph: Graph, closureMap: dict[URIRef, set[URIRef]]) ->
     return newTripleCount
 
 
+def materializeClassLevelAffordances(graph: Graph, closureMap: dict[URIRef, set[URIRef]]) -> int:
+    """
+    階段 2b: materialize class-level existential affordance restrictions。
+
+    若 class C 有：
+      C rdfs:subClassOf [
+          owl:onProperty cap:hasAffordance ;
+          owl:someValuesFrom A
+      ]
+    且 individual X rdf:type C，則為 X 建立一個匿名 affordance blank node：
+      X cap:hasAffordance _:affordance .
+      _:affordance rdf:type A .
+
+    這讓 group ontology 不需要為每個物件建立具名 affordance individual，
+    同時仍能保留 GraspableObject 所需的 hasAffordance 語義。
+    """
+    logger.info("")
+    logger.info("=== 階段 2b: class-level affordance restrictions materialization ===")
+
+    classRestrictionMap = _collectAffordanceRestrictions(graph, closureMap)
+    newTripleCount = 0
+    triplesToAdd = []
+
+    for individual, _, classUri in graph.triples((None, RDF.type, None)):
+        if not isinstance(individual, URIRef) or not isinstance(classUri, URIRef):
+            continue
+        if classUri not in classRestrictionMap:
+            continue
+
+        for affordanceClass in sorted(classRestrictionMap[classUri], key=str):
+            affordanceNode = _stableAffordanceBlankNode(individual, affordanceClass)
+            candidateTriples = [
+                (individual, CAP.hasAffordance, affordanceNode),
+                (affordanceNode, RDF.type, affordanceClass),
+            ]
+
+            # Also add superclass types for the anonymous affordance, because
+            # type inheritance already ran before these blank nodes are created.
+            for superClass in closureMap.get(affordanceClass, {affordanceClass}):
+                if superClass != affordanceClass:
+                    candidateTriples.append((affordanceNode, RDF.type, superClass))
+
+            for triple in candidateTriples:
+                if triple not in graph and triple not in triplesToAdd:
+                    triplesToAdd.append(triple)
+
+            logger.debug(
+                f"  MATERIALIZE: {_shortName(individual)} has anonymous {_shortName(affordanceClass)}"
+            )
+
+    for triple in triplesToAdd:
+        graph.add(triple)
+        newTripleCount += 1
+
+    logger.info(f"  -> 新增 {newTripleCount} 個 class-level affordance triples")
+    return newTripleCount
+
+
+def _collectAffordanceRestrictions(
+    graph: Graph,
+    closureMap: dict[URIRef, set[URIRef]],
+) -> dict[URIRef, set[URIRef]]:
+    """收集每個 class 繼承到的 cap:hasAffordance some AffordanceClass restrictions。"""
+    directRestrictionMap: dict[URIRef, set[URIRef]] = {}
+
+    for classUri, _, restriction in graph.triples((None, RDFS.subClassOf, None)):
+        if not isinstance(classUri, URIRef):
+            continue
+        if isinstance(restriction, URIRef):
+            continue
+        if (restriction, RDF.type, OWL.Restriction) not in graph:
+            continue
+        if (restriction, OWL.onProperty, CAP.hasAffordance) not in graph:
+            continue
+
+        for affordanceClass in graph.objects(restriction, OWL.someValuesFrom):
+            if isinstance(affordanceClass, URIRef):
+                directRestrictionMap.setdefault(classUri, set()).add(affordanceClass)
+
+    inheritedRestrictionMap: dict[URIRef, set[URIRef]] = {}
+    allClasses = set(closureMap.keys())
+    for ancestors in closureMap.values():
+        allClasses.update(ancestors)
+    allClasses.update(directRestrictionMap.keys())
+
+    for classUri in allClasses:
+        restrictions = set()
+        for ancestor in closureMap.get(classUri, {classUri}):
+            restrictions.update(directRestrictionMap.get(ancestor, set()))
+        if restrictions:
+            inheritedRestrictionMap[classUri] = restrictions
+            logger.debug(
+                f"  AFFORDANCE-RESTRICTIONS: {_shortName(classUri)} -> "
+                + ", ".join(sorted(_shortName(item) for item in restrictions))
+            )
+
+    return inheritedRestrictionMap
+
+
+def _stableAffordanceBlankNode(individual: URIRef, affordanceClass: URIRef) -> BNode:
+    """用 deterministic blank-node id 讓重跑時 inferred graph 較穩定。"""
+    digest = hashlib.sha1(f"{individual}|{affordanceClass}".encode("utf-8")).hexdigest()[:16]
+    return BNode(f"affordance_{digest}")
+
+
 def inferGraspableObjects(graph: Graph) -> int:
     """
     階段 3: owl:equivalentClass 模式匹配 — GraspableObject 推理。
@@ -180,6 +287,7 @@ def inferGraspableObjects(graph: Graph) -> int:
     檢查每個 individual 是否滿足：
       1. 是 cap:PhysicalObject（經 type 繼承後）
       2. 有 cap:hasAffordance 連結到 cap:GraspingAffordance 實例
+         （可由 class-level restriction materialize 成匿名 blank node）
 
     滿足則推入 rdf:type cap:GraspableObject。
     回傳新增的 triple 數量。
@@ -373,9 +481,10 @@ def main():
     # Step 1: 載入 Ontology
     graph = loadOntologies()
 
-    # Step 2: 三階段推理
+    # Step 2: 自訂推理
     closureMap = computeSubClassOfClosure(graph)
     typeInheritCount = inferTypeInheritance(graph, closureMap)
+    affordanceMaterializationCount = materializeClassLevelAffordances(graph, closureMap)
     graspableCount = inferGraspableObjects(graph)
     concealingCupCount = inferBallConcealingCups(graph)
 
@@ -384,6 +493,7 @@ def main():
     logger.info("=== 推理摘要 ===")
     logger.info(f"  rdfs:subClassOf 閉包中的 class 數量: {len(closureMap)}")
     logger.info(f"  type 繼承新增的 triples: {typeInheritCount}")
+    logger.info(f"  class-level affordance materialization 新增的 triples: {affordanceMaterializationCount}")
     logger.info(f"  GraspableObject 推理新增的 triples: {graspableCount}")
     logger.info(f"  BallConcealingCup 推理新增的 triples: {concealingCupCount}")
     logger.info(f"  推理後總 triple 數量: {len(graph)}")

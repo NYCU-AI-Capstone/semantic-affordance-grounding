@@ -207,7 +207,8 @@ g04:basket01 a cap:Basket,
         cap:PhysicalObject ;
     rdfs:label "basket 01"@en ;
     rdfs:comment "The basket instance defined by Group 04 for the baseline toy-block-collection task. Serves as the container target for collecting toy blocks; not directly grasped."@en ;
-    cap:hasAffordance g04:containAffordBasket01 ;
+    cap:hasAffordance [ a cap:Affordance,
+                cap:ContainmentAffordance ] ;
     cap:hasColor "brown" ;
     cap:hasObjectLabel "basket" ;
     cap:hasPoseFrame "world/object_basket" ;
@@ -219,7 +220,8 @@ g04:block01 a cap:GraspableObject,
     rdfs:label "toy block 01"@en ;
     rdfs:comment "The toy block instance defined by Group 04 for the baseline toy-block-collection task."@en ;
     cap:canBeManipulatedBy g04:gripper01 ;
-    cap:hasAffordance g04:graspAffordBlock01 ;
+    cap:hasAffordance [ a cap:Affordance,
+                cap:GraspingAffordance ] ;
     cap:hasColor "red" ;
     cap:hasObjectLabel "toy_block" ;
     cap:hasPoseFrame "world/object_block" ;
@@ -231,35 +233,14 @@ g04:blueCup01 a cap:Cup,
     rdfs:label "blue cup 01"@en ;
     rdfs:comment "The blue cup instance defined by Group 04 for the baseline cup-stacking task."@en ;
     cap:canBeManipulatedBy g04:gripper01 ;
-    cap:hasAffordance g04:graspAffordBlueCup01,
-        g04:stackAffordBlueCup01 ;
+    cap:hasAffordance [ a cap:Affordance,
+                cap:GraspingAffordance ],
+        [ a cap:Affordance,
+                cap:StackabilityAffordance ] ;
     cap:hasColor "blue" ;
     cap:hasObjectLabel "blue_cup" ;
     cap:hasPoseFrame "world/object_blue_cup" ;
     cap:hasTaskRole cap:TargetObject .
-
-g04:concealAffordShellCup01 a cap:Affordance,
-        cap:ContainmentAffordance,
-        g04:ConcealmentAffordance ;
-    rdfs:label "concealment affordance for shell cup 01"@en ;
-    rdfs:comment "A concealment affordance instance indicating shell-game cup 01 can hide a small ball."@en .
-
-g04:concealAffordShellCup02 a cap:Affordance,
-        cap:ContainmentAffordance,
-        g04:ConcealmentAffordance ;
-    rdfs:label "concealment affordance for shell cup 02"@en ;
-    rdfs:comment "A concealment affordance instance indicating shell-game cup 02 can hide a small ball."@en .
-
-g04:concealAffordShellCup03 a cap:Affordance,
-        cap:ContainmentAffordance,
-        g04:ConcealmentAffordance ;
-    rdfs:label "concealment affordance for shell cup 03"@en ;
-    rdfs:comment "A concealment affordance instance indicating shell-game cup 03 can hide a small ball."@en .
-
-g04:containAffordBasket01 a cap:Affordance,
-        cap:ContainmentAffordance ;
-    rdfs:label "containment affordance for basket 01"@en ;
-    rdfs:comment "A containment affordance instance indicating that the basket can contain toy blocks."@en .
 
 g04:fork01 a cap:Fork,
         cap:GraspableObject,
@@ -267,51 +248,12 @@ g04:fork01 a cap:Fork,
     rdfs:label "fork 01"@en ;
     rdfs:comment "The fork instance defined by Group 04 for the baseline cutlery-arrangement task."@en ;
     cap:canBeManipulatedBy g04:gripper01 ;
-    cap:hasAffordance g04:graspAffordFork01 ;
+    cap:hasAffordance [ a cap:Affordance,
+                cap:GraspingAffordance ] ;
     cap:hasColor "silver" ;
     cap:hasObjectLabel "fork" ;
     cap:hasPoseFrame "world/object_fork" ;
     cap:hasTaskRole cap:TargetObject .
-
-g04:graspAffordBlock01 a cap:Affordance,
-        cap:GraspingAffordance ;
-    rdfs:label "grasping affordance for toy block 01"@en ;
-    rdfs:comment "A grasping affordance instance associated with the toy block in the toy-block-collection task."@en .
-
-g04:graspAffordBlueCup01 a cap:Affordance,
-        cap:GraspingAffordance ;
-    rdfs:label "grasping affordance for blue cup 01"@en ;
-    rdfs:comment "A grasping affordance instance associated with the blue cup in the cup-stacking task."@en .
-
-g04:graspAffordFork01 a cap:Affordance,
-        cap:GraspingAffordance ;
-    rdfs:label "grasping affordance for fork 01"@en ;
-    rdfs:comment "A grasping affordance instance associated with the fork in the cutlery-arrangement task."@en .
-
-g04:graspAffordKnife01 a cap:Affordance,
-        cap:GraspingAffordance ;
-    rdfs:label "grasping affordance for knife 01"@en ;
-    rdfs:comment "A grasping affordance instance associated with the knife in the cutlery-arrangement task."@en .
-
-g04:graspAffordPinkCup01 a cap:Affordance,
-        cap:GraspingAffordance ;
-    rdfs:label "grasping affordance for pink cup 01"@en ;
-    rdfs:comment "A grasping affordance instance associated with the pink cup in the cup-stacking task."@en .
-
-g04:graspAffordShellCup01 a cap:Affordance,
-        cap:GraspingAffordance ;
-    rdfs:label "grasping affordance for shell cup 01"@en ;
-    rdfs:comment "A grasping affordance instance associated with shell-game cup 01."@en .
-
-g04:graspAffordShellCup02 a cap:Affordance,
-        cap:GraspingAffordance ;
-    rdfs:label "grasping affordance for shell cup 02"@en ;
-    rdfs:comment "A grasping affordance instance associated with shell-game cup 02."@en .
-
-g04:graspAffordShellCup03 a cap:Affordance,
-        cap:GraspingAffordance ;
-    rdfs:label "grasping affordance for shell cup 03"@en ;
-    rdfs:comment "A grasping affordance instance associated with shell-game cup 03."@en .
 
 g04:group04team a foaf:Group ;
     foaf:name "Group 04"@en .
@@ -322,7 +264,8 @@ g04:knife01 a cap:GraspableObject,
     rdfs:label "knife 01"@en ;
     rdfs:comment "The knife instance defined by Group 04 for the baseline cutlery-arrangement task."@en ;
     cap:canBeManipulatedBy g04:gripper01 ;
-    cap:hasAffordance g04:graspAffordKnife01 ;
+    cap:hasAffordance [ a cap:Affordance,
+                cap:GraspingAffordance ] ;
     cap:hasColor "silver" ;
     cap:hasObjectLabel "knife" ;
     cap:hasPoseFrame "world/object_knife" ;
@@ -334,8 +277,10 @@ g04:pinkCup01 a cap:Cup,
     rdfs:label "pink cup 01"@en ;
     rdfs:comment "The pink cup instance defined by Group 04 for the baseline cup-stacking task."@en ;
     cap:canBeManipulatedBy g04:gripper01 ;
-    cap:hasAffordance g04:graspAffordPinkCup01,
-        g04:stackAffordPinkCup01 ;
+    cap:hasAffordance [ a cap:Affordance,
+                cap:StackabilityAffordance ],
+        [ a cap:Affordance,
+                cap:GraspingAffordance ] ;
     cap:hasColor "pink" ;
     cap:hasObjectLabel "pink_cup" ;
     cap:hasPoseFrame "world/object_pink_cup" ;
@@ -345,7 +290,8 @@ g04:plate01 a cap:PhysicalObject,
         cap:Plate ;
     rdfs:label "plate 01"@en ;
     rdfs:comment "The plate instance defined by Group 04 for the baseline cutlery-arrangement task. Serves as a reference object for placing cutlery; not directly grasped."@en ;
-    cap:hasAffordance g04:supportAffordPlate01 ;
+    cap:hasAffordance [ a cap:Affordance,
+                cap:SupportAffordance ] ;
     cap:hasColor "white" ;
     cap:hasObjectLabel "plate" ;
     cap:hasPoseFrame "world/object_plate" ;
@@ -358,8 +304,13 @@ g04:shellCup01 a cap:Cup,
     rdfs:comment "Shell-game cup 01: one of several identical opaque cups that may conceal the ball. Empty in the current post-shuffle state."@en ;
     cap:canBeManipulatedBy g04:gripper01 ;
     g04:isOpaque true ;
-    cap:hasAffordance g04:concealAffordShellCup01,
-        g04:graspAffordShellCup01 ;
+    cap:hasAffordance [ a cap:Affordance,
+                cap:StackabilityAffordance ],
+        [ a cap:Affordance,
+                cap:GraspingAffordance ],
+        [ a cap:Affordance,
+                cap:ContainmentAffordance,
+                g04:ConcealmentAffordance ] ;
     cap:hasColor "pink" ;
     cap:hasObjectLabel "shell_cup" ;
     cap:hasPoseFrame "world/object_cup01" ;
@@ -374,8 +325,13 @@ g04:shellCup02 a cap:Cup,
     cap:canBeManipulatedBy g04:gripper01 ;
     g04:conceals g04:ball01 ;
     g04:isOpaque true ;
-    cap:hasAffordance g04:concealAffordShellCup02,
-        g04:graspAffordShellCup02 ;
+    cap:hasAffordance [ a cap:Affordance,
+                cap:GraspingAffordance ],
+        [ a cap:Affordance,
+                cap:StackabilityAffordance ],
+        [ a cap:Affordance,
+                cap:ContainmentAffordance,
+                g04:ConcealmentAffordance ] ;
     cap:hasColor "pink" ;
     cap:hasObjectLabel "shell_cup" ;
     cap:hasPoseFrame "world/object_cup02" ;
@@ -388,27 +344,17 @@ g04:shellCup03 a cap:Cup,
     rdfs:comment "Shell-game cup 03: one of several identical opaque cups that may conceal the ball. Empty in the current post-shuffle state."@en ;
     cap:canBeManipulatedBy g04:gripper01 ;
     g04:isOpaque true ;
-    cap:hasAffordance g04:concealAffordShellCup03,
-        g04:graspAffordShellCup03 ;
+    cap:hasAffordance [ a cap:Affordance,
+                cap:GraspingAffordance ],
+        [ a cap:Affordance,
+                cap:StackabilityAffordance ],
+        [ a cap:Affordance,
+                cap:ContainmentAffordance,
+                g04:ConcealmentAffordance ] ;
     cap:hasColor "pink" ;
     cap:hasObjectLabel "shell_cup" ;
     cap:hasPoseFrame "world/object_cup03" ;
     cap:hasTaskRole g04:CandidateContainer .
-
-g04:stackAffordBlueCup01 a cap:Affordance,
-        cap:StackabilityAffordance ;
-    rdfs:label "stackability affordance for blue cup 01"@en ;
-    rdfs:comment "A stackability affordance instance indicating that the blue cup can participate in stacking."@en .
-
-g04:stackAffordPinkCup01 a cap:Affordance,
-        cap:StackabilityAffordance ;
-    rdfs:label "stackability affordance for pink cup 01"@en ;
-    rdfs:comment "A stackability affordance instance indicating that the pink cup can participate in stacking."@en .
-
-g04:supportAffordPlate01 a cap:Affordance,
-        cap:SupportAffordance ;
-    rdfs:label "support affordance for plate 01"@en ;
-    rdfs:comment "A support affordance instance indicating that the plate supports placement of cutlery."@en .
 
 cap:EndEffector a owl:Class ;
     rdfs:label "end effector"@en ;
@@ -433,11 +379,6 @@ g04:conceals a owl:ObjectProperty ;
     rdfs:comment "Relates a cup to a ball that is hidden under (concealed by) that cup in the post-shuffle state. This is a perception/tracking-grounded fact asserted by the robot, from which the retrieval target is inferred."@en ;
     rdfs:domain cap:Cup ;
     rdfs:range g04:Ball .
-
-cap:StackabilityAffordance a owl:Class ;
-    rdfs:label "stackability affordance"@en ;
-    rdfs:comment "An affordance by which an object can participate in a stacking relation with another object."@en ;
-    rdfs:subClassOf cap:Affordance .
 
 g04:CandidateContainer a owl:Class ;
     rdfs:label "candidate container"@en ;
@@ -467,6 +408,11 @@ g04:Ball a owl:Class ;
 cap:ContainmentAffordance a owl:Class ;
     rdfs:label "containment affordance"@en ;
     rdfs:comment "An affordance by which an object can contain or receive other objects."@en ;
+    rdfs:subClassOf cap:Affordance .
+
+cap:StackabilityAffordance a owl:Class ;
+    rdfs:label "stackability affordance"@en ;
+    rdfs:comment "An affordance by which an object can participate in a stacking relation with another object."@en ;
     rdfs:subClassOf cap:Affordance .
 
 cap:Task a owl:Class ;
