@@ -13,6 +13,17 @@
 | 廖漢軒 | 112550087 |
 | 張程翔 | 112550205 |
 
+### Contribution Statements
+
+| Member | Contribution Statement |
+|--------|------------------------|
+| 謝侑哲 | Contributed to the baseline ontology modeling by defining task objects, task roles, and affordance-related class usage for the three entry-level tasks. Concrete repository parts: `ontology/group-ontology.ttl`, `report.md`. |
+| 李佑軒 | Contributed to the custom RDFLib reasoning workflow, including subclass/type inference and class-level affordance materialization for graspability inference. Concrete repository parts: `src/reasoning.py`, `ontology/inferred-results.ttl`. |
+| 江秉璋 | Contributed to repository documentation and consistency checks, and reviewed/adjusted the logic connecting ontology modeling with the reasoning workflow. Concrete repository parts: `README.md`, `report.md`, `src/reasoning.py`, `ontology/group-ontology.ttl`. |
+| 蔡承志 | Contributed to the SPARQL query layer for retrieving inferred graspable objects, task objects, and the advanced shell-game target. Concrete repository parts: `queries/graspable_objects.rq`, `queries/task_objects.rq`, `queries/concealing_cup.rq`. |
+| 廖漢軒 | Contributed to the advanced shell-game ontology design, including the ball, concealment relation, candidate container roles, and target-cup inference pattern. Concrete repository parts: `ontology/group-ontology.ttl`, `queries/concealing_cup.rq`. |
+| 張程翔 | Contributed to SHACL validation and generated output verification, including structural validation for object labels, task roles, and affordance materialization. Concrete repository parts: `shacl/shapes.ttl`, `shacl/validate.py`, `shacl/shacl_validation_report.txt`. |
+
 ---
 
 ## 1. Repository Contents
