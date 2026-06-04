@@ -258,7 +258,6 @@ python shacl/validate.py
 semantic-affordance-grounding/
 ├── README.md                         ← 本文件
 ├── report.md                         ← 設計報告
-├── CLAUDE.md                         ← 專案統整（Source of Truth）
 ├── requirements.txt                  ← Python 依賴（rdflib + pyshacl）
 ├── ontology/
 │   ├── group-ontology.ttl            ← 【組別自建】Group 04 ontology
