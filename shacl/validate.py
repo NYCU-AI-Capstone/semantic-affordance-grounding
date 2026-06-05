@@ -78,6 +78,37 @@ def loadDataGraph() -> Graph:
     return graph
 
 
+def buildValidationScopeSummary() -> str:
+    """Return a human-readable summary of validated SHACL fields and constraints."""
+    lines = [
+        "Validated Fields and Constraints",
+        "-" * 80,
+        "1. Target group: all cap:PhysicalObject instances",
+        "   - Shape: g04:PhysicalObjectShape",
+        "   - Field: cap:hasObjectLabel",
+        "   - Requirement: at least 1 value",
+        "   - Datatype: xsd:string",
+        "   - Meaning: every physical object must have a perception/object label.",
+        "",
+        "2. Target group: all objects used as cap:hasTargetObject",
+        "   - Shape: g04:TaskTargetShape",
+        "   - Field: cap:hasTaskRole",
+        "   - Requirement: at least 1 value",
+        "   - Meaning: every task target must state its task role.",
+        "",
+        "3. Target group: all objects used as cap:hasTargetObject",
+        "   - Shape: g04:TaskTargetShape",
+        "   - Field: cap:hasAffordance",
+        "   - Requirement: at least 1 value",
+        "   - Meaning: every task target must have at least one affordance.",
+        "   - Note: class-level affordance restrictions are materialized before validation,",
+        "     so inferred anonymous affordance blank nodes are visible to SHACL.",
+        "-" * 80,
+        "",
+    ]
+    return "\n".join(lines)
+
+
 def main():
     logger.info("=" * 80)
     logger.info("HW5 SHACL 結構驗證 — Group 04 (PDF §15, optional)")
@@ -121,7 +152,11 @@ def main():
         f"Conforms: {conforms}\n"
         + "-" * 80 + "\n"
     )
-    REPORT_OUTPUT_PATH.write_text(header + resultsText, encoding="utf-8")
+    validationScopeSummary = buildValidationScopeSummary()
+    REPORT_OUTPUT_PATH.write_text(
+        header + validationScopeSummary + resultsText,
+        encoding="utf-8",
+    )
     logger.info("")
     logger.info(f"  -> 報告已儲存至: {REPORT_OUTPUT_PATH}")
 
