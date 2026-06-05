@@ -286,6 +286,13 @@ course-affordance.ttl 中的 restrictions：
 2. **靜態狀態建模**：shell game 僅建模「洗牌後的最終狀態」，未建模洗牌動作或時序（fluents）；
    `g04:isOpaque` 等描述性屬性未接入推理鏈。
 3. **靜態 Affordance**：affordance 靜態定義，未考慮動態環境變化或 gripper capability constraints（如夾爪寬度 vs 物件尺寸）。
-4. **SHACL 為選用補充**：已實作結構驗證（`shapes.ttl` + `validate.py`，Conforms: True）。
-   「advanced task 須定義新 class + affordance/role」屬 TBox meta-constraint，不適合用 instance SHACL 表達，
-   改以設計保證。
+
+---
+
+## 9. Additional Discussion
+
+### 9.1 SHACL 逐物件檢查明細輸出
+
+pySHACL 的正式驗證結果以 `Conforms: True/False` 與違規清單為主；當驗證通過時，它不會自然列出每個通過檢查的物件與欄位。為了讓驗證結果更容易人工檢查，本專案在 `validate.py` 中額外從同一份 materialized graph 讀取 `cap:PhysicalObject` 與 `cap:hasTargetObject` 節點，逐一列出 `cap:hasObjectLabel`、`cap:hasTaskRole`、`cap:hasAffordance` 的 PASS/FAIL 狀態。
+
+這個逐物件摘要是說明用輸出，正式驗證結果仍以 pySHACL 的 `Conforms` 值為準。換句話說，`buildValidationScopeSummary(dataGraph)` 不是取代 SHACL，而是把同一份已 materialize 的資料圖整理成更容易閱讀的檢查明細，讓報告能直接顯示實際驗證到哪些物件，例如 `g04:blueCup01`、`g04:shellCup02` 等。

@@ -16,7 +16,7 @@ import sys
 import logging
 from pathlib import Path
 
-from rdflib import Graph
+from rdflib import BNode, Graph, Literal, RDF, URIRef
 from pyshacl import validate
 
 # =============================================================================
@@ -49,9 +49,12 @@ PROJECT_ROOT = SCRIPT_DIR.parent                       # repository root
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.reasoning import (  # noqa: E402
+    CAP,
+    G04,
     computeSubClassOfClosure,
     inferTypeInheritance,
     materializeClassLevelAffordances,
+    _shortName,
 )
 
 COURSE_ONTOLOGY_PATH = PROJECT_ROOT / "ontology" / "imports" / "course-affordance.ttl"
@@ -78,8 +81,8 @@ def loadDataGraph() -> Graph:
     return graph
 
 
-def buildValidationScopeSummary() -> str:
-    """Return a human-readable summary of validated SHACL fields and constraints."""
+def buildValidationScopeSummary(graph: Graph) -> str:
+    """Return a human-readable summary of validated SHACL fields and nodes."""
     lines = [
         "Validated Fields and Constraints",
         "-" * 80,
@@ -105,8 +108,94 @@ def buildValidationScopeSummary() -> str:
         "     so inferred anonymous affordance blank nodes are visible to SHACL.",
         "-" * 80,
         "",
+        "Validated Nodes",
+        "-" * 80,
+        "PhysicalObject label checks:",
     ]
+
+    physicalObjects = sorted(
+        {node for node in graph.subjects(RDF.type, CAP.PhysicalObject) if isinstance(node, URIRef)},
+        key=str,
+    )
+
+    for obj in physicalObjects:
+        labels = list(graph.objects(obj, CAP.hasObjectLabel))
+        lines.append(f"- {_shortName(obj)}")
+        lines.append(f"  - cap:hasObjectLabel: {_formatCheckValues(labels)}")
+
+    taskTargets = sorted(
+        {obj for obj in graph.objects(None, CAP.hasTargetObject) if isinstance(obj, URIRef)},
+        key=str,
+    )
+
+    lines.extend(["", "Task target checks:"])
+
+    for obj in taskTargets:
+        roles = list(graph.objects(obj, CAP.hasTaskRole))
+        affordances = list(graph.objects(obj, CAP.hasAffordance))
+        lines.append(f"- {_shortName(obj)}")
+        lines.append(f"  - cap:hasTaskRole: {_formatCheckValues(roles)}")
+        lines.append(f"  - cap:hasAffordance: {_formatAffordanceValues(graph, affordances)}")
+
+    lines.extend(["-" * 80, ""])
     return "\n".join(lines)
+
+
+def _formatCheckValues(values) -> str:
+    """Format a non-empty SHACL field value list as PASS, otherwise FAIL."""
+    if not values:
+        return "FAIL (missing)"
+    formattedValues = ", ".join(_formatNode(value) for value in sorted(values, key=str))
+    return f"PASS ({formattedValues})"
+
+
+def _formatAffordanceValues(graph: Graph, affordances) -> str:
+    """Format affordance nodes with their RDF types for per-object reporting."""
+    if not affordances:
+        return "FAIL (missing)"
+
+    formattedAffordances = []
+    for affordance in sorted(affordances, key=str):
+        affordanceTypes = _preferredAffordanceTypes(graph, affordance)
+        if isinstance(affordance, BNode):
+            if affordanceTypes:
+                formattedAffordances.append(
+                    "anonymous " + "/".join(_shortName(affordanceType) for affordanceType in affordanceTypes)
+                )
+            else:
+                formattedAffordances.append(f"anonymous {_formatNode(affordance)}")
+        elif affordanceTypes:
+            formattedAffordances.append(
+                f"{_formatNode(affordance)} ({', '.join(_shortName(affordanceType) for affordanceType in affordanceTypes)})"
+            )
+        else:
+            formattedAffordances.append(_formatNode(affordance))
+
+    return "PASS (" + ", ".join(formattedAffordances) + ")"
+
+
+def _preferredAffordanceTypes(graph: Graph, affordance) -> list[URIRef]:
+    """Return the most specific readable affordance types for an affordance node."""
+    typePriority = [
+        CAP.GraspingAffordance,
+        CAP.StackabilityAffordance,
+        CAP.SupportAffordance,
+        CAP.ContainmentAffordance,
+        G04.ConcealmentAffordance,
+    ]
+    existingTypes = set(graph.objects(affordance, RDF.type))
+    return [typeUri for typeUri in typePriority if typeUri in existingTypes]
+
+
+def _formatNode(node) -> str:
+    """Format RDF nodes for the text report."""
+    if isinstance(node, Literal):
+        return f"\"{node}\""
+    if isinstance(node, URIRef):
+        return _shortName(node)
+    if isinstance(node, BNode):
+        return str(node)
+    return str(node)
 
 
 def main():
@@ -152,7 +241,7 @@ def main():
         f"Conforms: {conforms}\n"
         + "-" * 80 + "\n"
     )
-    validationScopeSummary = buildValidationScopeSummary()
+    validationScopeSummary = buildValidationScopeSummary(dataGraph)
     REPORT_OUTPUT_PATH.write_text(
         header + validationScopeSummary + resultsText,
         encoding="utf-8",

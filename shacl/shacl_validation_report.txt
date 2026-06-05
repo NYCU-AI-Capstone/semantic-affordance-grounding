@@ -27,5 +27,58 @@ Validated Fields and Constraints
    - Note: class-level affordance restrictions are materialized before validation,
      so inferred anonymous affordance blank nodes are visible to SHACL.
 --------------------------------------------------------------------------------
+
+Validated Nodes
+--------------------------------------------------------------------------------
+PhysicalObject label checks:
+- g04:ball01
+  - cap:hasObjectLabel: PASS ("ball")
+- g04:basket01
+  - cap:hasObjectLabel: PASS ("basket")
+- g04:block01
+  - cap:hasObjectLabel: PASS ("toy_block")
+- g04:blueCup01
+  - cap:hasObjectLabel: PASS ("blue_cup")
+- g04:fork01
+  - cap:hasObjectLabel: PASS ("fork")
+- g04:knife01
+  - cap:hasObjectLabel: PASS ("knife")
+- g04:pinkCup01
+  - cap:hasObjectLabel: PASS ("pink_cup")
+- g04:plate01
+  - cap:hasObjectLabel: PASS ("plate")
+- g04:shellCup01
+  - cap:hasObjectLabel: PASS ("shell_cup")
+- g04:shellCup02
+  - cap:hasObjectLabel: PASS ("shell_cup")
+- g04:shellCup03
+  - cap:hasObjectLabel: PASS ("shell_cup")
+
+Task target checks:
+- g04:block01
+  - cap:hasTaskRole: PASS (cap:CollectableObject)
+  - cap:hasAffordance: PASS (anonymous cap:GraspingAffordance)
+- g04:blueCup01
+  - cap:hasTaskRole: PASS (cap:TargetObject)
+  - cap:hasAffordance: PASS (anonymous cap:GraspingAffordance, anonymous cap:StackabilityAffordance)
+- g04:fork01
+  - cap:hasTaskRole: PASS (cap:TargetObject)
+  - cap:hasAffordance: PASS (anonymous cap:GraspingAffordance)
+- g04:knife01
+  - cap:hasTaskRole: PASS (cap:TargetObject)
+  - cap:hasAffordance: PASS (anonymous cap:GraspingAffordance)
+- g04:pinkCup01
+  - cap:hasTaskRole: PASS (cap:TargetObject)
+  - cap:hasAffordance: PASS (anonymous cap:StackabilityAffordance, anonymous cap:GraspingAffordance)
+- g04:shellCup01
+  - cap:hasTaskRole: PASS (g04:CandidateContainer)
+  - cap:hasAffordance: PASS (anonymous cap:StackabilityAffordance, anonymous cap:GraspingAffordance, anonymous cap:ContainmentAffordance/g04:ConcealmentAffordance)
+- g04:shellCup02
+  - cap:hasTaskRole: PASS (g04:CandidateContainer)
+  - cap:hasAffordance: PASS (anonymous cap:GraspingAffordance, anonymous cap:StackabilityAffordance, anonymous cap:ContainmentAffordance/g04:ConcealmentAffordance)
+- g04:shellCup03
+  - cap:hasTaskRole: PASS (g04:CandidateContainer)
+  - cap:hasAffordance: PASS (anonymous cap:GraspingAffordance, anonymous cap:StackabilityAffordance, anonymous cap:ContainmentAffordance/g04:ConcealmentAffordance)
+--------------------------------------------------------------------------------
 Validation Report
 Conforms: True
